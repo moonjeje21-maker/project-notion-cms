@@ -8,8 +8,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · shadcn/ui (radix-nova) · npm. 코드는 `src/` 아래, import 별칭은 `@/*`. 정확한 버전, 화면 목록, 폴더 그림, 설치된 shadcn 컴포넌트는 `README.md`에 있다.
 
-- `main`에 바로 커밋하지 않는다 (hook이 막는다). 올릴 때는 `.claude/skills/ship/SKILL.md`의 순서(브랜치 → PR → 병합)를 따르고, 커밋 메시지와 PR은 영어로 쓴다. 사용자는 `/ship`으로 부른다
+- `main`에 바로 커밋하지 않는다 (hook이 막는다. 명령 글자만 보므로 브랜치 만들기와 `git commit`·`git push`를 `&&`로 묶지 말고 따로 실행한다). 올릴 때는 `.claude/skills/ship/SKILL.md`의 순서(브랜치 → PR → 병합)를 따르고, 커밋 메시지와 PR은 영어로 쓴다. 사용자는 `/ship`으로 부른다
 - 명령만 실행할 때는 경로 규칙이 자동으로 읽히지 않으므로 직접 읽는다: 라이브러리 설치·버전 올리기·`npm audit`·설정 파일 수정 전과 build 캐시 오류에는 `.claude/rules/dependencies.md`, 처음 쓰는 API나 라이브러리 설치·업그레이드에는 `.claude/rules/library-docs.md`
+
+## 진행 중인 작업
+
+- 만드는 것: **Living Wishlist** — Notion 표에 적은 인테리어 소품을 카드 한 화면으로 보여 주는 읽기 전용 사이트. 설계도는 `docs/prd/2026-10-09-project-notion-cms-prd.md`(기준 기획: `plans/2026-10-09-project-notion-cms-interior-service-plan.md`). 기능을 만들 때는 PRD의 기능 ID(F001~)를 따른다
+- 코드에는 아직 Notion 연동이 없다 (`@notionhq/client` 미설치, `.env` 없음). 시작 화면·대시보드·`lib/site.ts`의 이름과 메뉴는 아직 스타터 킷 값이다
+- PRD에서 이미 정한 구현 방식 (코드에 없으니 여기서 확인한다): Notion SDK 5.x는 데이터베이스 ID가 아닌 **데이터 소스 ID**로 조회한다 (환경변수 `NOTION_API_KEY`, `NOTION_DATA_SOURCE_ID`) · 자동 갱신은 `cacheComponents`를 켜지 않고 페이지 파일의 `export const revalidate = 300`으로 한다 (개발 서버에서는 캐시가 안 돌아 `npm run build && npm run start`로 확인) · 검색 엔진 색인 거부는 루트 `app/layout.tsx`의 `metadata.robots`로 모든 경로에 건다 · 외부 이미지는 `next/image` 대신 일반 `<img>`를 쓴다
+- PRD 작성은 `prd-generator` 에이전트, 검증은 `prd-validator` 에이전트 순서로 한다. 둘 다 `docs/prd/`에 저장한다 (검증 결과는 `<이름>-validation.md`)
 
 ## 명령
 
@@ -17,7 +24,7 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · shadcn/ui
 - `npm run lint` — 전체 lint. 파일 하나만: `npx eslint src/app/layout.tsx`
 - `npm run build` — 배포용 빌드 + 타입 검사 (lint는 돌리지 않는다). dev 서버를 켠 채로 돌려도 된다
 - 타입 검사만: `npx next typegen && npx tsc --noEmit` (typegen이 `LayoutProps` 같은 전역 타입을 만든다)
-- 테스트 도구는 없다. 변경 확인은 lint + build + 브라우저(Playwright MCP)로 한다. 스크린샷은 `.playwright-mcp/이름.png`로 저장한다 (git이 무시하는 폴더). 없는 주소를 열 때 콘솔에 찍히는 404 오류 1건은 정상이다
+- 테스트 도구는 없다. 변경 확인은 lint + build + 브라우저(Claude in Chrome 또는 Playwright MCP)로 한다. Playwright MCP는 `.mcp.json`에 있지만 `settings.local.json`에서 꺼 둘 수 있으니 안 보이면 그 때문이다. 스크린샷은 `.playwright-mcp/이름.png`로 저장한다 (git이 무시하는 폴더). 없는 주소를 열 때 콘솔에 찍히는 404 오류 1건은 정상이다
 
 ## 구조
 
