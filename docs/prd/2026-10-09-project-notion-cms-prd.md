@@ -159,12 +159,11 @@ Notion 응답을 화면이 쓰기 쉬운 형태로 바꾼 객체. 열 이름 ↔
 ### 스타일링 & UI
 
 - **Tailwind CSS 4.3.3** (`@tailwindcss/postcss`) - 스타일링. 색은 토큰 클래스만 사용
-- **shadcn/ui (CLI 4.21.1, 프리셋 radix-nova, 기본 색 neutral)** - 카드·배지·버튼·빈 상태(empty) 등 기본 부품. 이미 설치된 컴포넌트: button, badge, card, separator, input, label, sheet, dropdown-menu, sidebar, breadcrumb, avatar, collapsible, tooltip, skeleton, field, textarea, select, checkbox, switch, sonner, dialog, alert-dialog, alert, empty, spinner, tabs, table
+- **shadcn/ui (CLI 4.21.1, 프리셋 radix-nova, 기본 색 neutral)** - 카드·배지·버튼·빈 상태(empty) 등 기본 부품. 이미 설치된 컴포넌트: button, badge, card, dropdown-menu, sheet, empty
 - **radix-ui 1.6.7** - shadcn 컴포넌트의 기반
 - **lucide-react 1.52.0** - 아이콘 (대체 이미지 아이콘 등)
 - **class-variance-authority 0.7.1**, **cn 0.4.0**, **tw-animate-css 1.4.0** - shadcn 스타일 도우미
 - **next-themes 0.4.6** - 다크 모드 전환 (스타터 킷 틀에 포함, 그대로 유지)
-- **sonner 2.0.8** - 토스트 (스타터 킷에 포함. MVP 기능에서 직접 쓰는 곳은 없음)
 
 ### 데이터 저장소
 

@@ -1,6 +1,6 @@
 # project-notion-cms
 
-스타터 킷 `claude-nextjs`(Next.js · TypeScript · Tailwind CSS · shadcn/ui · lucide-react)에서 시작한 프로젝트입니다. Notion 연동은 아직 없습니다.
+**Living Wishlist** — 사고 싶은 인테리어 소품을 Notion 표에 "이름 + 상품 링크"만 적으면 웹 한 화면에 카드로 모아 보여 주는 읽기 전용 사이트입니다. 사용자는 본인(Notion에서 입력)과 주소를 공유받은 지인(웹에서 읽기만)이며 로그인은 없습니다. 스타터 킷 `claude-nextjs`(Next.js · TypeScript · Tailwind CSS · shadcn/ui · lucide-react)에서 시작했고, Notion 연동은 아직 없습니다.
 
 ## 기술 스택 (2026-10-04 기준)
 
@@ -13,7 +13,6 @@
 | shadcn/ui | CLI 4.21.1 | 프리셋 `radix-nova`, 기본 색 neutral |
 | lucide-react | 1.52.0 | shadcn 기본 아이콘 |
 | next-themes | 0.4.6 | 다크 모드 전환 (shadcn 공식 방식) |
-| sonner | 2.0.8 | 토스트(화면 구석에 잠깐 뜨는 알림) |
 | ESLint | 9.39.5 | eslint-plugin-react가 아직 ESLint 10을 지원하지 않아 9 유지 |
 
 Node.js 20.9 이상이 필요합니다.
@@ -35,7 +34,6 @@ npm run lint     # 코드 규칙 검사
 | 주소 | 화면 틀(레이아웃) | 파일 |
 |---|---|---|
 | `/` | 사이트형: 머리글 + 본문 + 바닥글, 휴대폰에서는 서랍 메뉴 | `src/app/(marketing)/` |
-| `/dashboard` | 대시보드형: 왼쪽 사이드바 + 상단 바 | `src/app/(dashboard)/` |
 | 없는 주소 | 404 화면 | `src/app/not-found.tsx` |
 | 오류가 났을 때 | 오류 화면 (다시 시도 버튼) | `src/app/error.tsx` |
 
@@ -51,33 +49,27 @@ npm run lint     # 코드 규칙 검사
 ```
 src/
 ├─ app/                  5층 · 페이지와 레이아웃 (주소 = 폴더)
-│  ├─ layout.tsx         최상위: 글꼴, 테마, 토스트
+│  ├─ layout.tsx         최상위: 글꼴, 테마
 │  ├─ not-found.tsx · error.tsx
-│  ├─ (marketing)/       사이트형 틀과 시작 화면
-│  └─ (dashboard)/       대시보드형 틀과 /dashboard
+│  └─ (marketing)/       사이트형 틀과 시작 화면
 ├─ components/
 │  ├─ ui/                1층 · 기본 부품 (shadcn CLI로만 추가)
 │  ├─ common/            2층 · 여러 화면이 같이 쓰는 조합 (logo, theme-toggle, page-header)
-│  ├─ layout/            3층 · 화면 틀 조각 (site-header, site-footer, mobile-nav,
-│  │                            app-sidebar, nav-main, nav-user, dashboard-header)
-│  ├─ features/          4층 · 한 기능 전용 (home/stack-card, home/component-demo)
+│  ├─ layout/            3층 · 화면 틀 조각 (site-header, site-footer, mobile-nav)
+│  ├─ features/          4층 · 한 기능 전용 (아직 없음. F001 소품 목록이 들어갈 자리)
 │  └─ providers/         앱 전체를 감싸는 설정 (theme-provider)
-├─ hooks/                use-mobile — 화면이 휴대폰 폭인지 알려 주는 훅
 └─ lib/                  0층 · 데이터와 도우미
    ├─ site.ts            사이트 이름, 메뉴 목록
-   ├─ stack.ts           시작 화면의 기술 스택 목록
    └─ utils.ts           cn() — 클래스 이름 합치기 도우미
 ```
 
 ## 설치된 shadcn/ui 컴포넌트
 
-- 기본: button, badge, card, separator, input, label
-- 화면 틀: sheet, dropdown-menu, sidebar, breadcrumb, avatar, collapsible, tooltip, skeleton
-- 폼: field, textarea, select, checkbox, switch
-- 피드백: sonner(토스트), dialog, alert-dialog, alert, empty, spinner
-- 내용 표시: tabs, table
+- 기본: button, badge, card
+- 화면 틀: sheet, dropdown-menu
+- 피드백: empty
 
-필요할 때 추가할 것: calendar, chart, command, combobox, carousel, drawer, pagination 등 → `npx shadcn@latest add <이름>`
+필요할 때 추가할 것: separator, skeleton, dialog, tooltip, input, label, field, tabs, table, calendar, chart, command, combobox, carousel, drawer, pagination 등 → `npx shadcn@latest add <이름>`
 
 ## 필요할 때 설치할 라이브러리
 
