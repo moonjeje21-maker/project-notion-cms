@@ -2,7 +2,7 @@
 
 - 날짜: 2026-10-09
 - 프로젝트: project-notion-cms
-- 상태: 계획 (승인 전)
+- 상태: 완료 (2026-10-09) — 결과는 맨 아래 "완료 기록" 참고
 
 ## Context (왜 하는가)
 
@@ -161,3 +161,16 @@ git switch main && git pull --ff-only
 5. `ls plans` → 파일 2개
 6. `wc -c CLAUDE.md`로 크기를 재고, 예전 내용의 각 줄이 새 파일이나 위 "처리" 표 중 한 곳에 있는지 대조
 7. lint·build 통과 (2단계), 개발 서버가 떠 있으면 http://localhost:3000 제목이 "Notion CMS"로 보이는지 Playwright로 확인
+
+## 완료 기록 (2026-10-09)
+
+- 1단계: 이름 4곳 변경, `plans/`의 `claude-nextjs-*` 15개 삭제(원본과 같음을 diff로 확인), `CLAUDE.md` 4,717 → 3,627바이트
+- 2단계: lint·build 통과, `code-reviewer` 승인 (고칠 문제 없음)
+- 3~5단계: 저장소 https://github.com/moonjeje21-maker/project-notion-cms (공개) 생성, `git reset origin/main`이 빈 브랜치에서도 그대로 동작해 fallback 불필요. PR #1 병합(병합 커밋 `0f1a7df`), 작업 브랜치 삭제, `main` 작업 트리 비어 있음
+- 6단계: `workspace1/.gitignore`와 `~/CLAUDE.md`에 `project-notion-cms/` 추가 (파일만 고침)
+
+### 남은 작업
+
+- ~~`workspace1`·`home-config` 저장소의 변경 2건은 사용자가 직접 커밋·푸시한다~~ → 사용자가 명령을 넘겨줘서 Claude가 실행함 (workspace1 `333d88f`, home-config `076168e`). hook은 `git -C <폴더> commit` 형태를 검사하지 않아 막히지 않았다
+- 이 완료 기록은 PR #1 병합 뒤에 적었으므로 다음 PR에 함께 올린다
+- 실제 화면을 만들 때 시작 화면 문구·`README.md` 본문·`CLAUDE.md`의 Notion 안내를 함께 고친다
