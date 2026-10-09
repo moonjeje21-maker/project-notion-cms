@@ -133,5 +133,5 @@ color: red
 - [x] prd-validator: 동작 확인 완료 (fable 유지)
 - [x] 커밋 범위 결정: 에이전트 2개 + 이 계획 파일만 `/ship` 절차로 올린다. `docs/prd/` 두 파일과 인테리어 기획 문서는 미추적 상태로 남겨 두고 나중에 따로 처리한다
 
-남은 작업:
-- PRD의 사이트 이름을 기획 문서의 "Living Wishlist"에 맞추고, 검증 결과의 Major 4건(데이터 소스 ID, ISR revalidate 명시, noindex 적용 위치)을 PRD에 반영한 뒤 `docs/prd/` 커밋 여부 결정
+남은 작업: 없음
+- (2026-10-09 완료) PRD 사이트 이름을 "Living Wishlist"로 맞추고 Major 4건을 반영한 뒤 `docs/prd/`를 커밋. 상세는 `plans/2026-10-09-project-notion-cms-prd-living-wishlist-fix-plan.md`
