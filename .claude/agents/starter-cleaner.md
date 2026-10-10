@@ -16,7 +16,7 @@ color: red
 
 1. `CLAUDE.md`, `AGENTS.md` — 프로젝트 규칙
 2. `package.json`, `README.md` — 실제 버전과 구조. 버전은 여기서만 읽고, 기억 속 Next.js 버전을 쓰지 않습니다
-3. `docs/prd/`에서 파일 이름의 날짜가 가장 최신인 `*-prd.md` (`-validation.md`는 제외) — 무엇을 남기고 지울지의 기준
+3. `docs/prd/prd.md` — 무엇을 남기고 지울지의 기준
 4. `.claude/rules/dependencies.md`, `.claude/rules/theme.md`, `.claude/rules/library-docs.md`
 5. 코드를 고치기 전에 `node_modules/next/dist/docs/`의 관련 문서 (이 Next.js는 학습 데이터와 다릅니다)
 
