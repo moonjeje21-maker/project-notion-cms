@@ -11,13 +11,12 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · shadcn/ui
 - `main`에 바로 커밋하지 않는다 (hook이 막는다. 명령 글자만 보므로 브랜치 만들기와 `git commit`·`git push`를 `&&`로 묶지 말고 따로 실행한다). 올릴 때는 `.claude/skills/ship/SKILL.md`의 순서(브랜치 → PR → 병합)를 따르고, 커밋 메시지와 PR은 영어로 쓴다. 사용자는 `/ship`으로 부른다
 - 명령만 실행할 때는 경로 규칙이 자동으로 읽히지 않으므로 직접 읽는다: 라이브러리 설치·버전 올리기·`npm audit`·설정 파일 수정 전과 build 캐시 오류에는 `.claude/rules/dependencies.md`, 처음 쓰는 API나 라이브러리 설치·업그레이드에는 `.claude/rules/library-docs.md`
 
-## 진행 중인 작업
+## 프로젝트 문서
 
-- 만드는 것: **Living Wishlist** — Notion 표에 적은 인테리어 소품을 카드 한 화면으로 보여 주는 읽기 전용 사이트. 설계도는 `docs/prd/prd.md`(기준 기획: `plans/2026-10-09-project-notion-cms-interior-service-plan.md`). 기능을 만들 때는 PRD의 기능 ID(F001~)를 따른다
-- 코드에는 아직 Notion 연동이 없다 (`@notionhq/client` 미설치, `.env` 없음). 스타터 킷 예제(대시보드·시작 화면 데모)는 2026-10-10에 정리했다. `lib/site.ts`는 Living Wishlist 값이고, 시작 화면은 F001 전까지 자리 표시 문구만 있다
-- PRD에서 이미 정한 구현 방식 (코드에 없으니 여기서 확인한다): Notion SDK 5.x는 데이터베이스 ID가 아닌 **데이터 소스 ID**로 조회한다 (환경변수 `NOTION_API_KEY`, `NOTION_DATA_SOURCE_ID`) · 자동 갱신은 `cacheComponents`를 켜지 않고 페이지 파일의 `export const revalidate = 300`으로 한다 (개발 서버에서는 캐시가 안 돌아 `npm run build && npm run start`로 확인) · 외부 이미지는 `next/image` 대신 일반 `<img>`를 쓴다
-- PRD 작성은 `prd-generator` 에이전트, 검증은 `prd-validator` 에이전트 순서로 한다. PRD는 `docs/prd/prd.md` 하나만 둔다 (이미 있으면 새 초안은 `prd-draft.md`로 만들어 비교·반영 뒤 지운다). 검증 결과는 `<PRD 이름>-validation.md` (예: `prd-validation.md`). 날짜는 파일 이름이 아니라 문서 첫머리에 적는다
-- 개발 로드맵은 `development-planner` 에이전트로 만든다. 결과는 `docs/roadmap/ROADMAP.md`와 `docs/roadmap/tasks/` (Task 상세 파일, 형식은 `docs/roadmap/tasks/000-sample.md`). `plans/`는 plan 모드 계획 파일용으로 그대로 쓴다
+- 만드는 것: **Living Wishlist** — Notion 표에 적은 인테리어 소품을 카드 한 화면으로 보여 주는 읽기 전용 사이트
+- 설계도는 `docs/prd/prd.md` (기능을 만들 때는 기능 ID F001~을 따른다), 진행 상태와 다음 할 일은 `docs/roadmap/ROADMAP.md` (Task 상세는 `docs/roadmap/tasks/`). 작업을 시작할 때 읽는다
+- PRD에서 정한 구현 방식: Notion SDK 5.x는 데이터베이스 ID가 아닌 **데이터 소스 ID**로 조회한다 (환경변수 `NOTION_API_KEY`, `NOTION_DATA_SOURCE_ID`) · 자동 갱신은 `cacheComponents`를 켜지 않고 페이지 파일의 `export const revalidate = 300`으로 한다 (개발 서버에서는 캐시가 안 돌아 `npm run build && npm run start`로 확인) · 외부 이미지는 `next/image` 대신 일반 `<img>`를 쓴다
+- 문서 에이전트: PRD는 `prd-generator` → `prd-validator` 순서. PRD는 `docs/prd/prd.md` 하나만 두고 (이미 있으면 `prd-draft.md`로 만들어 반영 뒤 지운다), 검증 결과는 `prd-validation.md`. 로드맵은 `development-planner`가 만든다. 날짜는 파일 이름이 아니라 문서 첫머리에 적는다. `plans/`는 plan 모드 계획 파일용
 
 ## 명령
 
