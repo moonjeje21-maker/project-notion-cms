@@ -2,7 +2,7 @@
 
 사고 싶은 인테리어 소품을 Notion 표에 "이름 + 상품 링크"만 적으면 웹 한 화면에 카드로 모아 보여 줘서, 흩어진 후보를 한곳에서 훑어보고 구매를 결정할 수 있게 한다.
 
-작성일: 2026-10-10 · 갱신일: 2026-10-11 (Task 002 완료 반영) · 기준 PRD: `docs/prd/prd.md` · 접근법: 구조 우선 (구조 → UI → 데이터)
+작성일: 2026-10-10 · 갱신일: 2026-10-11 (Task 003 완료·카드 디자인 반영) · 기준 PRD: `docs/prd/prd.md` · 접근법: 구조 우선 (구조 → UI → 데이터)
 
 ## 📌 가정
 
@@ -40,11 +40,12 @@
 - 화면 틀 `src/app/(marketing)/layout.tsx` (`<main>` 포함, 머리글 `site-header` + 바닥글 `site-footer` + 휴대폰 서랍 `mobile-nav`)
 - 공용 오류 화면 `src/app/error.tsx` (`retry` prop, "다시 시도" 버튼, 한국어 문구) · 404 `src/app/not-found.tsx`
 - `src/components/common/page-header.tsx` (페이지 제목 + 설명) · `logo.tsx` · `theme-toggle.tsx`
-- shadcn 부품 `src/components/ui/`: `badge`(종류 배지), `button`(칩), `card`(소품 카드), `empty`(빈 상태) · 아이콘 `lucide-react`
+- shadcn 부품 `src/components/ui/`: `badge`(종류 배지), `button`(칩), `card`(설치돼 있으나 소품 카드에는 쓰지 않음), `empty`(빈 상태) · 아이콘 `lucide-react`
 - `src/lib/site.ts` (사이트 이름·메뉴, 이미 Living Wishlist 값) · `src/lib/utils.ts`의 `cn()`
 - `.gitignore`의 `.env*` 규칙 (`.env.local`이 git에 올라가지 않음)
 - Task 001 산출물: `src/lib/items.ts`(`Item` 타입, `OTHER_CATEGORY`) · `src/lib/mock-items.ts`(Phase 2 확인용 더미 9개) · `src/components/features/wishlist/wishlist-view.tsx`(`items: Item[]` prop, Task 003부터 여기에 그리드를 넣음)
 - Task 002 산출물: `src/lib/notion.ts`의 `fetchAllRows()` — `collectPaginatedAPI`로 전체 행을 최근 추가 순으로 모아 `PageObjectResponse[]`를 돌려줌(`isFullPage` 필터 적용). 환경변수 누락 시 한국어 오류. `.env.local`에 값 입력 완료, README에 "환경변수" 절 있음
+- Task 003 산출물: `src/components/features/wishlist/item-card.tsx`(`ItemCard`: 테두리 없는 둥근 이미지(`rounded-2xl`) + 아래 이름·`Badge`, `Card` 부품 미사용, `"use client"` 없음) · `item-grid.tsx`(`ItemGrid`: `ul.grid grid-cols-2 gap-x-4 gap-y-6 lg:grid-cols-4`) — Task 004는 `ItemCard`에 예외 상태를, Task 005는 `wishlist-view.tsx`에 칩·빈 상태를 더함
 
 ## 개발 단계
 
@@ -79,22 +80,25 @@
 
 ### Phase 2: 화면 (UI, 더미 데이터)
 
-- **Task 003: 기본 소품 카드와 카드 그리드 만들기** - 우선순위
+- **Task 003: 기본 소품 카드와 카드 그리드 만들기** ✅ - 완료
   - 담당 기능: F001
-  - `src/components/features/wishlist/item-card.tsx`: shadcn `Card` 안에 정사각형 이미지 영역(`aspect-square`, 일반 `<img>` + `object-cover`, `next/image` 사용 안 함, `alt`는 소품 이름), 이름, 종류 `Badge`. 이 Task에서는 `"use client"` 없이 정상 데이터(이미지·링크·종류가 모두 있는 소품)만 그린다. 대체 그림·링크 처리는 Task 004
-  - `src/components/features/wishlist/item-grid.tsx`: `items: Item[]`를 받아 `grid grid-cols-2 gap-4 lg:grid-cols-4`로 `ItemCard`를 나열(F001 반응형). 색은 토큰 클래스만, 문구는 한국어
-  - `wishlist-view.tsx`에서 개수 문구를 지우고 `ItemGrid`를 그림
-  - 완료 기준: lint·build 통과, 브라우저에서 휴대폰 폭(375px) 2열·데스크톱 폭(1280px) 4열, 카드마다 이미지·이름·종류 배지가 보임
+  - See: `docs/roadmap/tasks/003-item-card-and-grid.md`
+  - ✅ `src/components/features/wishlist/item-card.tsx`: `ItemCard` — shadcn `Card` 부품을 쓰지 않는 일반 `div`. 테두리·배경 없는 둥근 이미지 영역(`div.aspect-square.rounded-2xl.bg-muted`) 안에 일반 `<img>`(`object-cover`, `loading="lazy"`, `alt`는 소품 이름, `next/image` 사용 안 함), 그 아래에 이름(`line-clamp-2 text-sm font-semibold`)과 `Badge variant="secondary"` 종류를 세로로 둠 (2026-10-11 참고 디자인 반영, `plans/2026-10-11-project-notion-cms-card-design-plan.md`). `@next/next/no-img-element`는 해당 줄 eslint 주석으로 처리(설정 파일은 손대지 않음). `"use client"` 없이 정상 데이터만 그림. 대체 그림·링크 처리는 Task 004
+  - ✅ `src/components/features/wishlist/item-grid.tsx`: `ItemGrid` — `items: Item[]`를 받아 `ul.grid grid-cols-2 gap-x-4 gap-y-6 lg:grid-cols-4`에 `li key={item.id}`로 `ItemCard` 나열(F001 반응형). 색은 토큰 클래스만, 문구는 한국어
+  - ✅ `wishlist-view.tsx`에서 "소품 N개" 문구를 지우고 `ItemGrid`를 그림
+  - ✅ 완료 기준 확인: lint·build 통과, build 라우트 표에서 `/` Revalidate 5m 유지. 브라우저에서 1280px 4열·375px 2열, 카드 9개에 이미지·이름·배지(mock-8 "기타") 확인. 스크린샷 `.playwright-mcp/task-003-desktop.png`·`task-003-mobile.png`. 디자인 다듬기 후 라이트·다크·375px 재확인, 스크린샷 `.playwright-mcp/task-003-design-desktop.png`·`task-003-design-mobile.png`
 
-- **Task 004: 카드의 예외 상태 만들기**
+- **Task 004: 카드의 예외 상태 만들기** - 우선순위
   - 담당 기능: F002, F004
   - `item-card.tsx`에 `"use client"` 추가(`onError` 때문). `imageUrl`이 비었거나 `onError`가 나면 `bg-muted` 배경 + `lucide-react` 아이콘(예: `ImageOff`) 대체 그림을 이미지와 같은 크기로 그림(F004). 종류가 `"기타"`면 그대로 "기타" 배지(F004)
+  - Task 003 상태에서는 mock-3처럼 `imageUrl`이 빈 문자열이면 `<img src="">`가 그려져 React 콘솔 오류("An empty string was passed to the src attribute")가 난다. 대체 그림 분기에서는 `imageUrl`이 비면 `<img>`를 아예 그리지 않는다
   - 링크 처리(F002): `url`이 있으면 카드 전체를 `<a href={url} target="_blank" rel="noopener noreferrer">`로 감싸고, 없으면 `<div>`로 그려 이동이 없게 한다. 링크 없는 카드는 PRD 가정대로 기본 커서 + 흐린 배지(`opacity`·`text-muted-foreground`)로 구분
+  - 대체 그림은 이미지 영역 div(`rounded-2xl bg-muted`) 안에 `ImageOff` 아이콘만 가운데 둔다. 링크가 있으면 카드 div를 `<a>`로 바꾸고 `group` + 이미지 `transition group-hover:opacity-90`으로 눌리는 느낌을 준다
   - 완료 기준: lint·build 통과, 브라우저에서 깨진 이미지·빈 이미지 카드에 회색 대체 그림, "기타" 배지, 링크 있는 카드 클릭 시 새 탭이 열리고 원래 탭은 목록 유지, 링크 없는 카드는 클릭해도 아무 일 없음
 
 - **Task 005: 종류 칩 필터와 빈 상태 만들기**
   - 담당 기능: F003, F004
-  - `src/components/features/wishlist/category-chips.tsx` (`"use client"`): `categories: string[]`·`selected: string`·`onSelect` prop. "전체" 칩이 맨 앞, 선택된 칩은 `Button variant="default"`, 나머지는 `variant="outline"` (`size="sm"`, `aria-pressed`). 가로 스크롤 가능한 `flex flex-wrap gap-2`
+  - `src/components/features/wishlist/category-chips.tsx` (`"use client"`): `categories: string[]`·`selected: string`·`onSelect` prop. "전체" 칩이 맨 앞, 선택된 칩은 `Button variant="default"`, 나머지는 `variant="outline"` (`size="sm"`, `aria-pressed`). 가로 스크롤 가능한 `flex flex-wrap gap-2` (참고 디자인처럼 휴대폰에서 가로 스크롤 한 줄 `flex gap-2 overflow-x-auto` + 칩 `shrink-0`로 할지 Task 005 계획 때 결정)
   - `wishlist-view.tsx`에 `"use client"`와 `useState`로 선택 종류 상태를 둔다(기본 "전체"). 칩 목록은 `items`의 `category`를 등장 순서대로 중복 제거해 만들고, `"기타"`가 있으면 맨 끝으로 보낸다(PRD 가정). 필터는 브라우저 안에서만, 주소(쿼리)는 바꾸지 않는다 — `useSearchParams`·`router.push` 사용 금지(F010 캐시 보호)
   - 빈 상태 2종(F004, shadcn `Empty` 사용): `items.length === 0`이면 칩을 숨기고 "아직 소품이 없어요"; 필터 결과 0개면 칩은 그대로 두고 "이 종류의 소품이 없어요"
   - 더미 데이터로 두 빈 상태를 확인하기 위해 `mock-items.ts`에 빈 배열을 잠시 넘기거나, 소품이 없는 종류를 임시로 포함해 확인한 뒤 되돌린다 (코드로 남기지 않음)
