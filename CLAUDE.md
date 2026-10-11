@@ -25,6 +25,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 타입 검사만: `npx next typegen && npx tsc --noEmit` (typegen이 `LayoutProps` 같은 전역 타입을 만든다)
 - 테스트 도구는 없다. 변경 확인은 lint + build + 브라우저(Claude in Chrome 또는 Playwright MCP)로 한다. Playwright MCP는 `.mcp.json`에 있지만 `settings.local.json`에서 꺼 둘 수 있으니 안 보이면 그 때문이다. 스크린샷은 `.playwright-mcp/이름.png`로 저장한다 (git이 무시하는 폴더). 없는 주소를 열 때 콘솔에 찍히는 404 오류 1건은 정상이다
 
+## 작업 완료 체크리스트
+```bash
+npm run check-all
+npm run build
+```
+
+
 ## 구조
 
 - 계층: `lib`·`hooks` → `components/ui` → `common`(여러 화면 공용) → `layout`(화면 틀 조각) → `features/<기능>`(한 기능 전용) → `app`. 아래층은 위층을 import하지 않는다
