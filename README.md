@@ -13,6 +13,7 @@
 | shadcn/ui | CLI 4.21.1 | 프리셋 `radix-nova`, 기본 색 neutral |
 | lucide-react | 1.52.0 | shadcn 기본 아이콘 |
 | next-themes | 0.4.6 | 다크 모드 전환 (shadcn 공식 방식) |
+| @notionhq/client | 5.27.0 | Notion 데이터 소스 조회 (SDK 5.x, 데이터베이스 ID가 아닌 데이터 소스 ID로 조회) |
 | ESLint | 9.39.5 | eslint-plugin-react가 아직 ESLint 10을 지원하지 않아 9 유지 |
 
 Node.js 20.9 이상이 필요합니다.
@@ -28,6 +29,23 @@ npm run lint     # 코드 규칙 검사
 ```
 
 `src/app/(marketing)/page.tsx`를 고치면 시작 화면이 바로 바뀝니다.
+
+## 환경변수
+
+Notion 표를 읽으려면 프로젝트 폴더에 `.env.local` 파일을 만들고 두 값을 넣습니다. 이 파일은 `.gitignore`의 `.env*` 규칙으로 git에 올라가지 않습니다. 값은 절대 커밋하거나 채팅에 붙여 넣지 마세요.
+
+```
+NOTION_API_KEY=         # Notion 통합의 API 키 (Internal Integration Secret)
+NOTION_DATA_SOURCE_ID=  # 소품 표의 데이터 소스 ID
+```
+
+값을 얻는 순서:
+
+1. Notion 통합 페이지(notion.so/my-integrations)에서 **내부 통합**을 하나 만들고 API 키를 복사합니다
+2. 소품 표를 열어 "연결(Connections)"에서 방금 만든 통합을 연결합니다 (연결하지 않으면 키가 맞아도 읽지 못합니다)
+3. 같은 표에서 "**데이터 소스 관리 → 데이터 소스 ID 복사**"로 ID를 복사합니다. 주소창에 보이는 데이터베이스 ID와는 다른 값이며, SDK 5.x는 데이터 소스 ID로만 조회합니다. 데이터베이스 ID를 넣으면 `object_not_found`(404) 오류가 납니다
+
+배포할 때는 Vercel 프로젝트 설정의 Environment Variables에 같은 이름으로 등록합니다.
 
 ## 들어 있는 화면
 
@@ -56,9 +74,12 @@ src/
 │  ├─ ui/                1층 · 기본 부품 (shadcn CLI로만 추가)
 │  ├─ common/            2층 · 여러 화면이 같이 쓰는 조합 (logo, theme-toggle, page-header)
 │  ├─ layout/            3층 · 화면 틀 조각 (site-header, site-footer, mobile-nav)
-│  ├─ features/          4층 · 한 기능 전용 (아직 없음. F001 소품 목록이 들어갈 자리)
+│  ├─ features/          4층 · 한 기능 전용 (wishlist/ — 소품 목록 화면 부품)
 │  └─ providers/         앱 전체를 감싸는 설정 (theme-provider)
 └─ lib/                  0층 · 데이터와 도우미
+   ├─ items.ts           Item 타입 (소품 한 개의 모양)
+   ├─ mock-items.ts      화면 확인용 더미 소품 (Notion 연결 뒤 삭제)
+   ├─ notion.ts          Notion 연결과 소품 표 읽기
    ├─ site.ts            사이트 이름, 메뉴 목록
    └─ utils.ts           cn() — 클래스 이름 합치기 도우미
 ```
