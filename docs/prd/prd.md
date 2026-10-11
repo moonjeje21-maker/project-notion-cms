@@ -1,6 +1,7 @@
 # Living Wishlist MVP PRD
 
 작성일: 2026-10-09 · 기준 문서: `plans/2026-10-09-project-notion-cms-interior-service-plan.md` (초안 v4), `plans/2026-10-09-project-notion-cms-prd-living-wishlist-fix-plan.md` (검증 보정)
+갱신일: 2026-10-11 (Task 002까지의 구현 반영. 진행 상태는 `docs/roadmap/ROADMAP.md`)
 
 ## 📌 가정
 
@@ -8,7 +9,7 @@
 - **칩 순서**: "전체"가 맨 앞, 그 뒤는 소품 목록에 처음 등장한 순서(최근 추가 역순 기준)로 가정한다
 - **카드 이미지 크기**: 이미지는 정사각형 영역에 맞춰 잘라 보여 준다(`object-cover`). 비었거나 깨졌을 때의 대체 그림도 같은 크기로 그린다
 - **링크 없는 카드 모양**: 상품 링크가 빈 카드는 눌리지 않는 모양(기본 커서, 흐린 배지)으로 구분해, 눌러도 아무 일이 없는 이유를 알 수 있게 한다
-- **`@notionhq/client` 버전**: 아직 설치되지 않았다. 기획 문서에 적힌 5.x(문서 작성 시점 5.27.0)를 그대로 쓰며, 실제 설치 시 `.claude/rules/library-docs.md` 절차로 재확인한다
+- **`@notionhq/client` 버전**: 2026-10-11 Task 002에서 5.27.0 설치 완료. 전체 행 수집은 `collectPaginatedAPI`로 한다 (SDK의 `collectAllDataSourceRows`는 정렬을 `created_time` 오름차순으로 고정해 쓰지 않음)
 - **머리글의 기존 요소(다크 모드 전환 버튼 등)**: 스타터 킷 틀에 이미 들어 있는 부품이므로 이 PRD의 기능 명세에는 넣지 않고 그대로 둔다
 - **Notion 연결 실패 화면**: 저장소에 이미 있는 공용 오류 화면("다시 시도" 버튼)을 그대로 쓰며, 별도 페이지로 만들지 않는다. 소품 목록 페이지의 오류 상태로 취급한다
 - **배포**: 기획 문서상 배포는 다음 단계지만, 기술 스택 섹션에는 예정 플랫폼(Vercel)을 함께 적는다
@@ -131,12 +132,13 @@
 | 이미지 URL | 쇼핑몰 사진의 "이미지 주소 복사"로 얻은 외부 주소. 선택 입력. 비어 있거나 깨지면 대체 그림. Notion에 직접 올린 사진은 주소가 1시간마다 바뀌어 쓰지 않음 | |
 | (생성 시각) | Notion이 자동으로 기록. 목록 정렬 기준(역순) | |
 
+- 2026-10-11 실제 확인(Task 002): 열 타입은 `이름`=제목(title), `상품 링크`=URL, `종류`=선택(select), `이미지 URL`=URL. 7행
 - 웹에서 빼고 싶은 소품은 Notion에서 행을 지우거나 보관(archive)한다. "공개" 체크박스 열은 두지 않는다
-- **조회 키**: Notion 앱 "데이터 소스 관리 → 데이터 소스 ID 복사"로 얻은 **데이터 소스 ID**를 쓴다 (환경변수 `NOTION_DATA_SOURCE_ID`. API 키는 `NOTION_API_KEY`. 둘 다 `.env.local`에 두고 git에 올리지 않는다). 데이터베이스 ID와 호환되지 않으므로 섞어 쓰지 않는다. 소품이 100개를 넘어도 전부 가져오도록 전체 행 수집 방식(`collectAllDataSourceRows` 또는 `next_cursor` 반복)으로 조회한다
+- **조회 키**: Notion 앱 "데이터 소스 관리 → 데이터 소스 ID 복사"로 얻은 **데이터 소스 ID**를 쓴다 (환경변수 `NOTION_DATA_SOURCE_ID`. API 키는 `NOTION_API_KEY`. 둘 다 `.env.local`에 두고 git에 올리지 않는다). 데이터베이스 ID와 호환되지 않으므로 섞어 쓰지 않는다. 소품이 100개를 넘어도 전부 가져오도록 `collectPaginatedAPI`로 `next_cursor`를 끝까지 따라가며 조회한다. 구현은 `src/lib/notion.ts`의 `fetchAllRows()`(Task 002), `Item` 매핑은 Task 006
 
 ### Item (화면용 변환 객체, 저장하지 않음)
 
-Notion 응답을 화면이 쓰기 쉬운 형태로 바꾼 객체. 열 이름 ↔ 필드 매핑은 Notion 연동 코드 한 파일에만 둔다.
+Notion 응답을 화면이 쓰기 쉬운 형태로 바꾼 객체. 열 이름 ↔ 필드 매핑은 Notion 연동 코드 한 파일에만 둔다. 구현: `src/lib/items.ts`의 `Item` 타입과 `OTHER_CATEGORY = "기타"` 상수 (Task 001)
 
 | 필드 | 설명 | 관계 |
 |------|------|------|
@@ -168,7 +170,7 @@ Notion 응답을 화면이 쓰기 쉬운 형태로 바꾼 객체. 열 이름 ↔
 ### 데이터 저장소
 
 - **Notion 데이터베이스** - 소품 입력·보관 (CMS 역할). 입력 화면과 관리자 로그인을 따로 만들지 않는다
-- **@notionhq/client 5.x (설치 예정, 기획 문서 기준 5.27.0)** - Notion API 호출. 5 버전부터 "데이터베이스 → 데이터 소스" 단계가 생겼으므로 조회는 `dataSources.query`에 **데이터 소스 ID**를 넘긴다 (데이터 모델의 '조회 키' 참조). 설치 시 `.claude/rules/library-docs.md` 절차로 버전을 재확인한다
+- **@notionhq/client 5.27.0** (2026-10-11 설치) - Notion API 호출. 5 버전부터 "데이터베이스 → 데이터 소스" 단계가 생겼으므로 조회는 `dataSources.query`에 **데이터 소스 ID**를 넘긴다 (데이터 모델의 '조회 키' 참조). 설치 시 `.claude/rules/library-docs.md` 절차대로 `*.d.ts`로 호출 방식을 확인했다
 
 ### 이미지
 
@@ -188,13 +190,32 @@ Notion 응답을 화면이 쓰기 쉬운 형태로 바꾼 객체. 열 이름 ↔
 
 ---
 
+## 🚧 구현 현황 (2026-10-11)
+
+진행 상태와 다음 할 일은 `docs/roadmap/ROADMAP.md`가 기준이다. 여기에는 PRD 항목이 코드 어디에 있는지만 적는다.
+
+- **기반 완료 (Task 000~002)**: `Item` 타입·`OTHER_CATEGORY`(`src/lib/items.ts`), 더미 소품 9개(`src/lib/mock-items.ts`, Task 006에서 삭제), `WishlistView` 자리(`src/components/features/wishlist/wishlist-view.tsx`, 지금은 "소품 N개"만), Notion 클라이언트와 `fetchAllRows()`(`src/lib/notion.ts`), `.env.local`과 README "환경변수" 절
+- **화면은 아직 더미 데이터**를 쓴다. Notion 실제 데이터 연결은 Task 006
+
+| 기능 ID | 상태 | 구현 위치 / 남은 일 |
+|----|----|----|
+| F001 | 미구현 | 카드·그리드 Task 003, Notion 연결 Task 006 |
+| F002 | 미구현 | Task 004 |
+| F003 | 미구현 | Task 005 |
+| F004 | 미구현 | Task 004(대체 이미지·"기타"), Task 005(빈 상태) |
+| F010 | 일부 완료 | `src/app/(marketing)/page.tsx`에 `export const revalidate = 300` 적용(build 출력 `/` Revalidate 5m). 5분 갱신 확인은 Task 007 |
+| F011 | 일부 완료 | 환경변수 누락 시 `src/lib/notion.ts`가 한국어 오류("환경변수 NOTION_API_KEY가 없습니다. .env.local을 확인하세요")를 던짐. 오류 화면·"다시 시도" 확인은 Task 007 |
+
+---
+
 ## ✅ 정합성 검증 결과
 
 - 기능 명세의 모든 ID(F001·F002·F003·F004·F010·F011)가 "소품 목록 페이지"의 구현 기능 목록에 있다
 - 기능 명세의 관련 페이지(소품 목록 페이지)가 페이지별 상세 기능에 존재한다
 - 메뉴 구조의 유일한 항목 "홈"이 "소품 목록 페이지"로 존재하고, 메뉴가 참조하는 6개 ID가 모두 기능 명세에 정의되어 있다
 - 페이지에만 있고 기능 명세에 없는 기능, 기능 명세에만 있고 페이지에 없는 기능, 메뉴에만 있고 페이지가 없는 항목: 없음
-- 기술 스택 버전은 `package.json`·`README.md`와 일치하며, 미설치 라이브러리(`@notionhq/client`)는 "(설치 예정)"으로 표기했다
+- 기술 스택 버전은 `package.json`·`README.md`와 일치한다. 2026-10-11 `@notionhq/client` 5.27.0 설치를 반영했다
 - 2026-10-09 prd-validator 검증(`2026-10-09-project-notion-cms-prd-validation.md`) Major 4건 반영: 데이터 소스 ID, ISR revalidate 명시, noindex 루트 적용, 사이트 이름 Living Wishlist
 - 2026-10-09 prd-generator 2차 생성본(계획 문서 2개 입력)과 비교해 11건 반영: "기타" 칩 위치, 카드 이미지 크기, 링크 없는 카드 모양, 소품 0개 시 칩 숨김·리디렉션 없음, `rel="noopener noreferrer"`, 브라우저 필터 이유, F011 실패 원인·`retry` prop, 머리글 구성, 선택 칩 강조, 데이터 모델 이름 Living Wishlist, 환경변수·`.env.local`. 비교 기준과 목록은 `plans/2026-10-09-project-notion-cms-prd-regenerate-plan.md`
 - 2026-10-09 사용자 결정으로 F012(검색 엔진 색인 거부) 삭제. 색인을 허용하므로 별도 기능 없음. 번호는 비워 둔다 (F010·F011 유지). 상세는 `plans/2026-10-09-project-notion-cms-remove-noindex-plan.md`
+- 2026-10-11 Task 000~002 구현을 반영해 가정(`@notionhq/client`), 데이터 모델(실제 열 타입·조회 방식·`Item` 구현 위치), 기술 스택, 구현 현황 절을 갱신. 기능 명세(F ID)와 페이지 상세는 바꾸지 않음

@@ -2,12 +2,12 @@
 
 사고 싶은 인테리어 소품을 Notion 표에 "이름 + 상품 링크"만 적으면 웹 한 화면에 카드로 모아 보여 줘서, 흩어진 후보를 한곳에서 훑어보고 구매를 결정할 수 있게 한다.
 
-작성일: 2026-10-10 · 기준 PRD: `docs/prd/prd.md` · 접근법: 구조 우선 (구조 → UI → 데이터)
+작성일: 2026-10-10 · 갱신일: 2026-10-11 (Task 002 완료 반영) · 기준 PRD: `docs/prd/prd.md` · 접근법: 구조 우선 (구조 → UI → 데이터)
 
 ## 📌 가정
 
 - **파일 자리**: PRD는 `Item` 타입과 Notion 연동 코드의 폴더를 정하지 않았다. `CLAUDE.md` 계층 규칙에 따라 데이터·도우미는 `src/lib/`에 둔다 — 타입 `src/lib/items.ts`, 더미 데이터 `src/lib/mock-items.ts`, Notion 연동(열 이름 ↔ `Item` 매핑 포함) `src/lib/notion.ts`. 화면 부품은 `src/components/features/wishlist/`에 둔다 (`item-card.tsx`, `item-grid.tsx`, `category-chips.tsx`, `wishlist-view.tsx`)
-- **Notion 열 타입**: "상품 링크"·"이미지 URL" 열은 Notion **URL 속성**으로 가정한다. 실제 타입이 다르면(예: 텍스트) `src/lib/notion.ts`의 매핑만 고친다
+- **Notion 열 타입**: "상품 링크"·"이미지 URL" 열은 Notion **URL 속성**으로 가정한다. 실제 타입이 다르면(예: 텍스트) `src/lib/notion.ts`의 매핑만 고친다 — Task 002에서 실제 열 확인: `이름`=title, `상품 링크`=url, `종류`=select, `이미지 URL`=url (가정 맞음)
 - **"기타" 처리 시점**: `Item.category`는 비어 있지 않게 유지한다. Notion "종류"가 비어 있으면 매핑 단계(`src/lib/notion.ts`)에서 `"기타"`로 바꿔 넣고, 화면은 `category` 값을 그대로 배지와 칩에 쓴다. 더미 데이터에도 `"기타"` 소품을 하나 넣어 화면 Phase에서 미리 확인한다
 - **더미 데이터의 수명**: 더미 데이터 `src/lib/mock-items.ts`는 Phase 2(화면) 확인용이며, Notion 연결(Task 006)에서 실제 데이터로 바꾼 뒤 삭제한다
 - **클라이언트 경계**: 이미지 깨짐 감지(`onError`)와 칩 선택 상태는 브라우저에서만 동작하므로 `item-card.tsx`·`category-chips.tsx`·`wishlist-view.tsx`에 `"use client"`를 붙인다. 소품 목록 페이지(`page.tsx`)는 서버 컴포넌트로 남겨 Notion을 읽고 `items`를 props로 넘긴다
@@ -43,6 +43,8 @@
 - shadcn 부품 `src/components/ui/`: `badge`(종류 배지), `button`(칩), `card`(소품 카드), `empty`(빈 상태) · 아이콘 `lucide-react`
 - `src/lib/site.ts` (사이트 이름·메뉴, 이미 Living Wishlist 값) · `src/lib/utils.ts`의 `cn()`
 - `.gitignore`의 `.env*` 규칙 (`.env.local`이 git에 올라가지 않음)
+- Task 001 산출물: `src/lib/items.ts`(`Item` 타입, `OTHER_CATEGORY`) · `src/lib/mock-items.ts`(Phase 2 확인용 더미 9개) · `src/components/features/wishlist/wishlist-view.tsx`(`items: Item[]` prop, Task 003부터 여기에 그리드를 넣음)
+- Task 002 산출물: `src/lib/notion.ts`의 `fetchAllRows()` — `collectPaginatedAPI`로 전체 행을 최근 추가 순으로 모아 `PageObjectResponse[]`를 돌려줌(`isFullPage` 필터 적용). 환경변수 누락 시 한국어 오류. `.env.local`에 값 입력 완료, README에 "환경변수" 절 있음
 
 ## 개발 단계
 
@@ -55,7 +57,7 @@
   - ✅ `lib/site.ts`를 Living Wishlist 값으로(`mainNav` "홈" 하나, `footerNav` 빈 배열), `(marketing)/page.tsx`는 `PageHeader` 자리 표시 문구만, `app/layout.tsx`에서 Toaster·TooltipProvider 제거, `next.config.ts` 비움
   - ✅ `README.md`·`CLAUDE.md`·`.claude/rules/`·PRD의 낡은 문장 수정. `npm run lint`·`npm run build` 통과 (라우트 `/`·`/_not-found`)
 
-### Phase 1: 뼈대 (구조)
+### Phase 1: 뼈대 (구조) ✅
 
 - **Task 001: Item 타입·더미 데이터·화면 부품 자리 만들기** ✅ - 완료
   - 담당 기능: 기반 (전 기능 공통), F010
@@ -66,17 +68,18 @@
   - ✅ `src/app/(marketing)/page.tsx`: `export const revalidate = 300` 추가(F010 자리, `cacheComponents`는 켜지 않음), `mockItems`를 `WishlistView`에 넘김, `PageHeader` 설명을 `siteConfig.description`으로 교체
   - 완료 기준: lint·build 통과, 브라우저에서 `/`에 사이트 제목·설명과 "소품 N개" 문구가 보임, build 출력에서 `/`가 `revalidate` 300초(ISR)로 표시됨
 
-- **Task 002: Notion SDK 설치와 연결 준비하기** - 우선순위
+- **Task 002: Notion SDK 설치와 연결 준비하기** ✅ - 완료
   - 담당 기능: 기반 (전 기능 공통), F011
-  - `.claude/rules/dependencies.md`·`.claude/rules/library-docs.md`를 먼저 읽고 `@notionhq/client` **5.x** 설치(`npm view @notionhq/client version`으로 현재 버전 확인, 설치 후 `node_modules/@notionhq/client`의 `*.d.ts`로 `dataSources.query`와 전체 행 수집 도우미 이름(`collectPaginatedAPI` 등) 확인). `README.md` 기술 스택 표에 버전 추가
-  - `.env.local`에 `NOTION_API_KEY`·`NOTION_DATA_SOURCE_ID` (데이터 소스 ID. 데이터베이스 ID와 섞지 않음, `.gitignore`의 `.env*`로 미추적 확인). `README.md`에 두 변수 이름과 얻는 방법("데이터 소스 관리 → 데이터 소스 ID 복사") 한 절 추가
-  - `src/lib/notion.ts` 1차: Notion 클라이언트 생성, 환경변수가 없으면 한국어 메시지로 오류를 던진다(F011의 원인 노출). `fetchAllRows()` — `dataSources.query`에 데이터 소스 ID, 정렬 `created_time` 내림차순(최근 추가가 위), 100개 넘어도 전부 가져오도록 전체 행 수집(`next_cursor` 반복 또는 SDK 도우미). **열 이름 ↔ `Item` 매핑은 아직 넣지 않고** SDK 응답 행을 그대로 반환한다. `any` 금지
-  - `src/app/(marketing)/page.tsx`는 건드리지 않는다 (화면 연결은 Task 006)
+  - See: `docs/roadmap/tasks/002-notion-sdk-and-connection-prep.md`
+  - ✅ `.claude/rules/dependencies.md`·`.claude/rules/library-docs.md`를 먼저 읽고 `@notionhq/client` **5.x** 설치(`npm view @notionhq/client version`으로 현재 버전 확인, 설치 후 `node_modules/@notionhq/client`의 `*.d.ts`로 `dataSources.query`와 전체 행 수집 도우미 이름(`collectPaginatedAPI` 등) 확인). `README.md` 기술 스택 표에 버전 추가
+  - ✅ `.env.local`에 `NOTION_API_KEY`·`NOTION_DATA_SOURCE_ID` (데이터 소스 ID. 데이터베이스 ID와 섞지 않음, `.gitignore`의 `.env*`로 미추적 확인). `README.md`에 두 변수 이름과 얻는 방법("데이터 소스 관리 → 데이터 소스 ID 복사") 한 절 추가
+  - ✅ `src/lib/notion.ts` 1차: Notion 클라이언트 생성, 환경변수가 없으면 한국어 메시지로 오류를 던진다(F011의 원인 노출). `fetchAllRows()` — `dataSources.query`에 데이터 소스 ID, 정렬 `created_time` 내림차순(최근 추가가 위), 100개 넘어도 전부 가져오도록 전체 행 수집(`next_cursor` 반복 또는 SDK 도우미). **열 이름 ↔ `Item` 매핑은 아직 넣지 않고** SDK 응답 행을 그대로 반환한다. `any` 금지
+  - ✅ `src/app/(marketing)/page.tsx`는 건드리지 않는다 (화면 연결은 Task 006)
   - 완료 기준: lint·build 통과, 터미널에서 행 개수 확인 — `node --env-file=.env.local --input-type=module -e "import('./src/lib/notion.ts').then(m => m.fetchAllRows()).then(r => console.log(r.length))"` (Node 24는 TS 파일을 바로 실행. 안 되면 `page.tsx`에 임시 `console.log`를 넣어 보고 제거). 환경변수 하나를 지우면 한국어 오류 메시지가 찍힘
 
 ### Phase 2: 화면 (UI, 더미 데이터)
 
-- **Task 003: 기본 소품 카드와 카드 그리드 만들기**
+- **Task 003: 기본 소품 카드와 카드 그리드 만들기** - 우선순위
   - 담당 기능: F001
   - `src/components/features/wishlist/item-card.tsx`: shadcn `Card` 안에 정사각형 이미지 영역(`aspect-square`, 일반 `<img>` + `object-cover`, `next/image` 사용 안 함, `alt`는 소품 이름), 이름, 종류 `Badge`. 이 Task에서는 `"use client"` 없이 정상 데이터(이미지·링크·종류가 모두 있는 소품)만 그린다. 대체 그림·링크 처리는 Task 004
   - `src/components/features/wishlist/item-grid.tsx`: `items: Item[]`를 받아 `grid grid-cols-2 gap-4 lg:grid-cols-4`로 `ItemCard`를 나열(F001 반응형). 색은 토큰 클래스만, 문구는 한국어
@@ -102,6 +105,7 @@
 - **Task 006: Notion 소품을 Item으로 바꿔 화면에 연결하기**
   - 담당 기능: F001, F010, F011
   - `src/lib/notion.ts` 2차: `getItems(): Promise<Item[]>` — `fetchAllRows()` 결과를 열 이름 ↔ `Item` 매핑("이름" 제목 → `name`, "상품 링크" → `url`, "종류" Select → `category`(비면 `"기타"`), "이미지 URL" → `imageUrl`)으로 바꾼다. 매핑은 이 파일에만 둔다. `any` 금지 — SDK 응답 타입과 타입 가드로 속성을 읽는다
+  - `fetchAllRows()`는 이미 `isFullPage`로 거른 `PageObjectResponse[]`를 돌려주므로, 매핑은 `row.properties["이름"]` 등을 Task 002에서 확인한 타입(`이름`=title, `상품 링크`=url, `종류`=select, `이미지 URL`=url)으로 읽는다. `row.id`가 `Item.id`, 정렬은 이미 최근 추가 순
   - `src/app/(marketing)/page.tsx`를 `async`로 바꿔 `await getItems()` 결과를 `WishlistView`에 넘긴다. 실패 시 오류를 잡지 않고 던져 `app/error.tsx`가 받게 한다(F011). `src/lib/mock-items.ts` 삭제
   - 완료 기준: lint·build 통과(`.env.local` 필요), 브라우저(`npm run dev`)에서 Notion의 실제 소품이 최근 추가 순으로 카드에 보이고 칩·링크·대체 이미지·"기타"가 실제 데이터로 동작
 
