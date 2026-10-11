@@ -13,6 +13,7 @@
 - **클라이언트 경계**: 이미지 깨짐 감지(`onError`)와 칩 선택 상태는 브라우저에서만 동작하므로 `item-card.tsx`·`category-chips.tsx`·`wishlist-view.tsx`에 `"use client"`를 붙인다. 소품 목록 페이지(`page.tsx`)는 서버 컴포넌트로 남겨 Notion을 읽고 `items`를 props로 넘긴다
 - **페이지 머리 영역**: 현재 `page.tsx`의 `PageHeader`는 그대로 두고, 자리 표시 문구만 사이트 설명(`siteConfig.description`)으로 바꾼다. 머리글의 사이트 이름·다크 모드 버튼은 PRD 가정대로 손대지 않는다
 - **빌드 시 Notion 접근**: Task 006부터 `npm run build`가 빌드 중 Notion을 읽어 `/`를 미리 만들므로, `.env.local`과 네트워크가 있어야 build가 통과한다. 환경변수가 없으면 `src/lib/notion.ts`가 한국어 메시지로 바로 오류를 던지게 해 원인을 알 수 있게 한다
+- **Notion 연결 검증 시점**: 가장 불확실한 외부 연동(열 타입·데이터 소스 ID·SDK 5.x 호출 방식)을 화면보다 먼저 확인하기 위해 SDK 설치·환경변수·원시 조회(Task 002)를 Phase 1에 둔다. 화면 Task는 더미 데이터를 그대로 쓰고, 실제 데이터 연결은 Task 006에서 한다
 - **배포 Phase**: PRD 기술 스택에 Vercel이 "다음 단계에 예정"으로 있고 F011이 "배포 전에 Vercel 환경변수를 먼저 등록한다"고 하므로 Phase 4(배포)를 둔다. Vercel 계정·GitHub 연결은 사용자가 Vercel 화면에서 직접 한다
 
 ## 개요
@@ -56,30 +57,39 @@
 
 ### Phase 1: 뼈대 (구조)
 
-- **Task 001: Item 타입·더미 데이터·화면 부품 자리 만들기** - 우선순위
+- **Task 001: Item 타입·더미 데이터·화면 부품 자리 만들기** ✅ - 완료
   - 담당 기능: 기반 (전 기능 공통), F010
-  - `src/lib/items.ts`: PRD 데이터 모델의 `Item` 타입(`id`·`name`·`url`·`imageUrl`·`category`, 모두 `string`, 없는 값은 빈 문자열, `category`는 비면 `"기타"`)과 상수 `OTHER_CATEGORY = "기타"`
-  - `src/lib/mock-items.ts`: `Item[]` 더미 소품 8~10개. 종류 가구·조명·화분·수납·러그·소품을 섞고, 이미지 URL 없는 것·깨진 주소인 것·상품 링크 없는 것·종류 없는(`"기타"`) 것을 각 1개 이상 포함해 Phase 2에서 모든 화면 상태를 눌러 볼 수 있게 한다. 순서는 "최근 추가가 위"로 가정한 배열 순서
-  - `src/components/features/wishlist/` 폴더와 `wishlist-view.tsx` 자리: `items: Item[]` prop을 받아 소품 개수만 한국어로 보여 주는 최소 컴포넌트(named export, 아직 `"use client"` 없음)
-  - `src/app/(marketing)/page.tsx`: `export const revalidate = 300` 추가(F010 자리, `cacheComponents`는 켜지 않음), `mockItems`를 `WishlistView`에 넘김, `PageHeader` 설명을 `siteConfig.description`으로 교체
+  - See: `docs/roadmap/tasks/001-item-type-and-dummy-data.md`
+  - ✅ `src/lib/items.ts`: PRD 데이터 모델의 `Item` 타입(`id`·`name`·`url`·`imageUrl`·`category`, 모두 `string`, 없는 값은 빈 문자열, `category`는 비면 `"기타"`)과 상수 `OTHER_CATEGORY = "기타"`
+  - ✅ `src/lib/mock-items.ts`: `Item[]` 더미 소품 8~10개. 종류 가구·조명·화분·수납·러그·소품을 섞고, 이미지 URL 없는 것·깨진 주소인 것·상품 링크 없는 것·종류 없는(`"기타"`) 것을 각 1개 이상 포함해 Phase 2에서 모든 화면 상태를 눌러 볼 수 있게 한다. 순서는 "최근 추가가 위"로 가정한 배열 순서
+  - ✅ `src/components/features/wishlist/` 폴더와 `wishlist-view.tsx` 자리: `items: Item[]` prop을 받아 소품 개수만 한국어로 보여 주는 최소 컴포넌트(named export, 아직 `"use client"` 없음)
+  - ✅ `src/app/(marketing)/page.tsx`: `export const revalidate = 300` 추가(F010 자리, `cacheComponents`는 켜지 않음), `mockItems`를 `WishlistView`에 넘김, `PageHeader` 설명을 `siteConfig.description`으로 교체
   - 완료 기준: lint·build 통과, 브라우저에서 `/`에 사이트 제목·설명과 "소품 N개" 문구가 보임, build 출력에서 `/`가 `revalidate` 300초(ISR)로 표시됨
+
+- **Task 002: Notion SDK 설치와 연결 준비하기** - 우선순위
+  - 담당 기능: 기반 (전 기능 공통), F011
+  - `.claude/rules/dependencies.md`·`.claude/rules/library-docs.md`를 먼저 읽고 `@notionhq/client` **5.x** 설치(`npm view @notionhq/client version`으로 현재 버전 확인, 설치 후 `node_modules/@notionhq/client`의 `*.d.ts`로 `dataSources.query`와 전체 행 수집 도우미 이름(`collectPaginatedAPI` 등) 확인). `README.md` 기술 스택 표에 버전 추가
+  - `.env.local`에 `NOTION_API_KEY`·`NOTION_DATA_SOURCE_ID` (데이터 소스 ID. 데이터베이스 ID와 섞지 않음, `.gitignore`의 `.env*`로 미추적 확인). `README.md`에 두 변수 이름과 얻는 방법("데이터 소스 관리 → 데이터 소스 ID 복사") 한 절 추가
+  - `src/lib/notion.ts` 1차: Notion 클라이언트 생성, 환경변수가 없으면 한국어 메시지로 오류를 던진다(F011의 원인 노출). `fetchAllRows()` — `dataSources.query`에 데이터 소스 ID, 정렬 `created_time` 내림차순(최근 추가가 위), 100개 넘어도 전부 가져오도록 전체 행 수집(`next_cursor` 반복 또는 SDK 도우미). **열 이름 ↔ `Item` 매핑은 아직 넣지 않고** SDK 응답 행을 그대로 반환한다. `any` 금지
+  - `src/app/(marketing)/page.tsx`는 건드리지 않는다 (화면 연결은 Task 006)
+  - 완료 기준: lint·build 통과, 터미널에서 행 개수 확인 — `node --env-file=.env.local --input-type=module -e "import('./src/lib/notion.ts').then(m => m.fetchAllRows()).then(r => console.log(r.length))"` (Node 24는 TS 파일을 바로 실행. 안 되면 `page.tsx`에 임시 `console.log`를 넣어 보고 제거). 환경변수 하나를 지우면 한국어 오류 메시지가 찍힘
 
 ### Phase 2: 화면 (UI, 더미 데이터)
 
-- **Task 002: 기본 소품 카드와 카드 그리드 만들기**
+- **Task 003: 기본 소품 카드와 카드 그리드 만들기**
   - 담당 기능: F001
-  - `src/components/features/wishlist/item-card.tsx`: shadcn `Card` 안에 정사각형 이미지 영역(`aspect-square`, 일반 `<img>` + `object-cover`, `next/image` 사용 안 함, `alt`는 소품 이름), 이름, 종류 `Badge`. 이 Task에서는 `"use client"` 없이 정상 데이터(이미지·링크·종류가 모두 있는 소품)만 그린다. 대체 그림·링크 처리는 Task 003
+  - `src/components/features/wishlist/item-card.tsx`: shadcn `Card` 안에 정사각형 이미지 영역(`aspect-square`, 일반 `<img>` + `object-cover`, `next/image` 사용 안 함, `alt`는 소품 이름), 이름, 종류 `Badge`. 이 Task에서는 `"use client"` 없이 정상 데이터(이미지·링크·종류가 모두 있는 소품)만 그린다. 대체 그림·링크 처리는 Task 004
   - `src/components/features/wishlist/item-grid.tsx`: `items: Item[]`를 받아 `grid grid-cols-2 gap-4 lg:grid-cols-4`로 `ItemCard`를 나열(F001 반응형). 색은 토큰 클래스만, 문구는 한국어
   - `wishlist-view.tsx`에서 개수 문구를 지우고 `ItemGrid`를 그림
   - 완료 기준: lint·build 통과, 브라우저에서 휴대폰 폭(375px) 2열·데스크톱 폭(1280px) 4열, 카드마다 이미지·이름·종류 배지가 보임
 
-- **Task 003: 카드의 예외 상태 만들기**
+- **Task 004: 카드의 예외 상태 만들기**
   - 담당 기능: F002, F004
   - `item-card.tsx`에 `"use client"` 추가(`onError` 때문). `imageUrl`이 비었거나 `onError`가 나면 `bg-muted` 배경 + `lucide-react` 아이콘(예: `ImageOff`) 대체 그림을 이미지와 같은 크기로 그림(F004). 종류가 `"기타"`면 그대로 "기타" 배지(F004)
   - 링크 처리(F002): `url`이 있으면 카드 전체를 `<a href={url} target="_blank" rel="noopener noreferrer">`로 감싸고, 없으면 `<div>`로 그려 이동이 없게 한다. 링크 없는 카드는 PRD 가정대로 기본 커서 + 흐린 배지(`opacity`·`text-muted-foreground`)로 구분
   - 완료 기준: lint·build 통과, 브라우저에서 깨진 이미지·빈 이미지 카드에 회색 대체 그림, "기타" 배지, 링크 있는 카드 클릭 시 새 탭이 열리고 원래 탭은 목록 유지, 링크 없는 카드는 클릭해도 아무 일 없음
 
-- **Task 004: 종류 칩 필터와 빈 상태 만들기**
+- **Task 005: 종류 칩 필터와 빈 상태 만들기**
   - 담당 기능: F003, F004
   - `src/components/features/wishlist/category-chips.tsx` (`"use client"`): `categories: string[]`·`selected: string`·`onSelect` prop. "전체" 칩이 맨 앞, 선택된 칩은 `Button variant="default"`, 나머지는 `variant="outline"` (`size="sm"`, `aria-pressed`). 가로 스크롤 가능한 `flex flex-wrap gap-2`
   - `wishlist-view.tsx`에 `"use client"`와 `useState`로 선택 종류 상태를 둔다(기본 "전체"). 칩 목록은 `items`의 `category`를 등장 순서대로 중복 제거해 만들고, `"기타"`가 있으면 맨 끝으로 보낸다(PRD 가정). 필터는 브라우저 안에서만, 주소(쿼리)는 바꾸지 않는다 — `useSearchParams`·`router.push` 사용 금지(F010 캐시 보호)
@@ -88,14 +98,6 @@
   - 완료 기준: lint·build 통과, 브라우저에서 칩 클릭 시 해당 종류 카드만 보이고 주소가 바뀌지 않음, "전체" 클릭 시 전체 복귀, 선택 칩 강조, "기타" 칩이 맨 끝, 소품 0개 화면에 칩 없이 "아직 소품이 없어요", 필터 결과 0개에 "이 종류의 소품이 없어요"
 
 ### Phase 3: Notion 연결 (데이터)
-
-- **Task 005: Notion SDK 설치와 연결 준비하기**
-  - 담당 기능: 기반 (전 기능 공통), F011
-  - `.claude/rules/dependencies.md`·`.claude/rules/library-docs.md`를 먼저 읽고 `@notionhq/client` **5.x** 설치(`npm view @notionhq/client version`으로 현재 버전 확인, 설치 후 `node_modules/@notionhq/client`의 `*.d.ts`로 `dataSources.query`와 전체 행 수집 도우미 이름(`collectPaginatedAPI` 등) 확인). `README.md` 기술 스택 표에 버전 추가
-  - `.env.local`에 `NOTION_API_KEY`·`NOTION_DATA_SOURCE_ID` (데이터 소스 ID. 데이터베이스 ID와 섞지 않음, `.gitignore`의 `.env*`로 미추적 확인). `README.md`에 두 변수 이름과 얻는 방법("데이터 소스 관리 → 데이터 소스 ID 복사") 한 절 추가
-  - `src/lib/notion.ts` 1차: Notion 클라이언트 생성, 환경변수가 없으면 한국어 메시지로 오류를 던진다(F011의 원인 노출). `fetchAllRows()` — `dataSources.query`에 데이터 소스 ID, 정렬 `created_time` 내림차순(최근 추가가 위), 100개 넘어도 전부 가져오도록 전체 행 수집(`next_cursor` 반복 또는 SDK 도우미). **열 이름 ↔ `Item` 매핑은 아직 넣지 않고** SDK 응답 행을 그대로 반환한다. `any` 금지
-  - `src/app/(marketing)/page.tsx`는 건드리지 않는다 (화면 연결은 Task 006)
-  - 완료 기준: lint·build 통과, 터미널에서 행 개수 확인 — `node --env-file=.env.local --input-type=module -e "import('./src/lib/notion.ts').then(m => m.fetchAllRows()).then(r => console.log(r.length))"` (Node 24는 TS 파일을 바로 실행. 안 되면 `page.tsx`에 임시 `console.log`를 넣어 보고 제거). 환경변수 하나를 지우면 한국어 오류 메시지가 찍힘
 
 - **Task 006: Notion 소품을 Item으로 바꿔 화면에 연결하기**
   - 담당 기능: F001, F010, F011
@@ -126,14 +128,14 @@
 
 | 기능 ID | 기능명 | Task |
 |---|---|---|
-| F001 | 소품 목록 카드 그리드 | Task 002, Task 006 |
-| F002 | 구매 링크 새 탭 열기 | Task 003 |
-| F003 | 종류 칩 필터 | Task 004 |
-| F004 | 빈 상태·대체 이미지 표시 | Task 003, Task 004 |
+| F001 | 소품 목록 카드 그리드 | Task 003, Task 006 |
+| F002 | 구매 링크 새 탭 열기 | Task 004 |
+| F003 | 종류 칩 필터 | Task 005 |
+| F004 | 빈 상태·대체 이미지 표시 | Task 004, Task 005 |
 | F010 | Notion 자동 갱신 | Task 001, Task 006, Task 007, Task 008 |
-| F011 | Notion 연결 오류 표시 | Task 005, Task 006, Task 007, Task 008 |
+| F011 | Notion 연결 오류 표시 | Task 002, Task 006, Task 007, Task 008 |
 
-기반 Task(기능 ID 없음): Task 000(스타터 정리), Task 001(타입·더미 데이터·부품 자리, F010의 `revalidate` 자리 포함), Task 005(SDK 설치·환경변수·연결 준비, F011의 환경변수 오류 포함)
+기반 Task(기능 ID 없음): Task 000(스타터 정리), Task 001(타입·더미 데이터·부품 자리, F010의 `revalidate` 자리 포함), Task 002(SDK 설치·환경변수·연결 준비, F011의 환경변수 오류 포함)
 
 ## 제외 (MVP 이후)
 
