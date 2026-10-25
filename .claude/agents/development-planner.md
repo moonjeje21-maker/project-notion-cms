@@ -2,7 +2,7 @@
 name: development-planner
 description: Use this agent to create or update the Korean docs/roadmap/ROADMAP.md (and docs/roadmap/tasks/ files) for this repository from the PRD in docs/prd/, following a structure-first approach (skeleton → UI with dummy data → real data). Use it for initial roadmap creation, marking tasks done, adding phases, or creating a task spec file before starting a task.\n\nExamples:\n- <example>\n  Context: PRD is ready and the user wants a roadmap\n  user: "docs/prd/prd.md를 바탕으로 ROADMAP.md 만들어줘"\n  assistant: "development-planner 에이전트로 PRD를 읽어 ROADMAP.md와 docs/roadmap/tasks/000-sample.md를 만들겠습니다."\n  <commentary>\n  A PRD path is given, so the agent reads it and the repo rules, then writes ROADMAP.md at the repo root.\n  </commentary>\n</example>\n- <example>\n  Context: User finished a task\n  user: "ROADMAP.md에서 Task 003 완료로 바꿔줘"\n  assistant: "development-planner 에이전트로 Task 003을 완료 상태로 갱신하겠습니다."\n  <commentary>\n  Status updates to an existing ROADMAP.md go through the same agent; it changes only the requested task.\n  </commentary>\n</example>\n- <example>\n  Context: User is about to start a task\n  user: "Task 002 작업 파일 만들어줘"\n  assistant: "development-planner 에이전트로 docs/roadmap/tasks/002-....md를 ROADMAP의 Task 002 내용으로 만들겠습니다."\n  <commentary>\n  Task spec files are created on demand from the roadmap entry and docs/roadmap/tasks/000-sample.md.\n  </commentary>\n</example>
 tools: Read, Glob, Grep, Write, Edit
-model: claude-fable-5-1
+model: claude-sonnet-5-5
 color: red
 ---
 
