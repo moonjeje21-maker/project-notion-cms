@@ -2,7 +2,7 @@
 
 사고 싶은 인테리어 소품을 Notion 표에 "이름 + 상품 링크"만 적으면 웹 한 화면에 카드로 모아 보여 줘서, 흩어진 후보를 한곳에서 훑어보고 구매를 결정할 수 있게 한다.
 
-작성일: 2026-10-10 · 갱신일: 2026-10-11 (Task 005 완료 반영) · 기준 PRD: `docs/prd/prd.md` · 접근법: 구조 우선 (구조 → UI → 데이터)
+작성일: 2026-10-10 · 갱신일: 2026-10-25 (Task 004 완료·Phase 2 완료, PR #22 자동 검사 hook 워크플로우 반영) · 기준 PRD: `docs/prd/prd.md` · 접근법: 구조 우선 (구조 → UI → 데이터)
 
 ## 📌 가정
 
@@ -32,8 +32,8 @@
 1. **작업 선택**: ROADMAP에서 `- 우선순위` 표시된 Task를 고릅니다
 2. **작업 파일 생성**: `development-planner`에게 "Task XXX 작업 파일 만들어줘" → `docs/roadmap/tasks/XXX-설명.md` 생성 (형식은 `docs/roadmap/tasks/000-sample.md`)
 3. **구현**: plan 모드로 계획을 세워 승인받고 `plans/`에 저장합니다 (계획 파일은 작업 파일의 명세를 다시 적지 않고 `docs/roadmap/tasks/XXX-설명.md`를 가리키며, 실제 수정 순서와 검증만 적습니다). 작업 파일의 구현 단계를 따라 구현하고, 단계마다 체크박스를 채웁니다
-4. **확인**: `npm run lint` → `npm run build` → 브라우저 확인(스크린샷은 `.playwright-mcp/`). Notion 자동 갱신은 `npm run build && npm run start`
-5. **마무리**: 작업 파일에 변경 요약을 적고, `development-planner`에게 "Task XXX 완료로 바꿔줘" → ROADMAP 갱신. 커밋은 `/ship`
+4. **확인**: `npm run check-all`(lint + typegen + tsc) → `npm run build` → 브라우저 확인(스크린샷은 `.playwright-mcp/`). Notion 자동 갱신은 `npm run build && npm run start`. 2026-10-25(PR #22)부터 턴이 끝날 때 Stop hook(`.claude/hooks/check-after-work.sh`)이 `src/`·설정 파일에 커밋 안 된 변경이 있으면 이 두 명령을 자동으로 돌리고, Edit/Write로 `src/`의 `.ts`·`.tsx`를 고치면 그 파일만 바로 eslint로 검사한다(`lint-changed-file.sh`). 브라우저 도구(Claude in Chrome·Playwright MCP)가 세션에 없으면 Task 004처럼 npx 캐시의 `playwright-core` + 설치된 Chrome(headless) 스크립트로 대신 확인한다
+5. **마무리**: 작업 파일에 변경 요약을 적고, `development-planner`에게 "Task XXX 완료로 바꿔줘" → ROADMAP 갱신. 커밋은 `/ship` (`src/`가 바뀐 PR은 `code-reviewer` 에이전트의 "승인"을 먼저 받고, 계획 파일의 진행 상태를 같은 PR에 넣는다)
 
 ## 활용하는 기존 코드 (다시 만들지 않음)
 
@@ -45,8 +45,9 @@
 - `.gitignore`의 `.env*` 규칙 (`.env.local`이 git에 올라가지 않음)
 - Task 001 산출물: `src/lib/items.ts`(`Item` 타입, `OTHER_CATEGORY`) · `src/lib/mock-items.ts`(Phase 2 확인용 더미 9개) · `src/components/features/wishlist/wishlist-view.tsx`(`items: Item[]` prop, Task 003부터 여기에 그리드를 넣음)
 - Task 002 산출물: `src/lib/notion.ts`의 `fetchAllRows()` — `collectPaginatedAPI`로 전체 행을 최근 추가 순으로 모아 `PageObjectResponse[]`를 돌려줌(`isFullPage` 필터 적용). 환경변수 누락 시 한국어 오류. `.env.local`에 값 입력 완료, README에 "환경변수" 절 있음
-- Task 003 산출물: `src/components/features/wishlist/item-card.tsx`(`ItemCard`: 테두리 없는 둥근 이미지(`rounded-2xl`) + 아래 이름·`Badge`, `Card` 부품 미사용, `"use client"` 없음) · `item-grid.tsx`(`ItemGrid`: `ul.grid grid-cols-2 gap-x-4 gap-y-6 lg:grid-cols-4`) — Task 004는 `ItemCard`에 예외 상태를, Task 005는 `wishlist-view.tsx`에 칩·빈 상태를 더함
-- Task 005 산출물: `src/components/features/wishlist/category-chips.tsx`(`CategoryChips`·`ALL_CATEGORY = "전체"`, `"use client"`) · `wishlist-view.tsx`가 칩·필터·빈 상태 2종(shadcn `Empty`)을 담당 — Task 004는 `item-card.tsx`만 고치면 됨
+- Task 003 산출물: `src/components/features/wishlist/item-card.tsx`(`ItemCard`: 테두리 없는 둥근 이미지(`rounded-2xl`) + 아래 이름·`Badge`, `Card` 부품 미사용, `"use client"` 없음) · `item-grid.tsx`(`ItemGrid`: `ul.grid grid-cols-2 gap-x-4 gap-y-6 lg:grid-cols-4`) — 이후 Task 004가 `ItemCard`에 예외 상태를, Task 005가 `wishlist-view.tsx`에 칩·빈 상태를 더했음(`item-card.tsx`의 `"use client"` 없음은 Task 004에서 바뀜)
+- Task 005 산출물: `src/components/features/wishlist/category-chips.tsx`(`CategoryChips`·`ALL_CATEGORY = "전체"`, `"use client"`) · `wishlist-view.tsx`가 칩·필터·빈 상태 2종(shadcn `Empty`)을 담당
+- Task 004 산출물: `item-card.tsx`(`ItemCard`, `"use client"` + `useState`)가 카드의 예외 상태 전부를 처리 — 대체 그림(`imageUrl` 빈 문자열 또는 `onError` → `bg-muted` + `ImageOff`, `<img>` 미렌더), 링크 분기(`<a target="_blank" rel="noopener noreferrer" className="group …">` / `<div>`), 링크 없는 카드 배지 `opacity-60`, "기타" 배지는 `item.category` 그대로. hydration 전에 이미 실패한 이미지를 잡는 ref 콜백 `markIfAlreadyFailed`(`complete && naturalWidth === 0`) 보완 포함. Task 006은 데이터만 바꾸면 되고 카드는 손대지 않음
 
 ## 개발 단계
 
@@ -79,7 +80,7 @@
   - ✅ `src/app/(marketing)/page.tsx`는 건드리지 않는다 (화면 연결은 Task 006)
   - 완료 기준: lint·build 통과, 터미널에서 행 개수 확인 — `node --env-file=.env.local --input-type=module -e "import('./src/lib/notion.ts').then(m => m.fetchAllRows()).then(r => console.log(r.length))"` (Node 24는 TS 파일을 바로 실행. 안 되면 `page.tsx`에 임시 `console.log`를 넣어 보고 제거). 환경변수 하나를 지우면 한국어 오류 메시지가 찍힘
 
-### Phase 2: 화면 (UI, 더미 데이터)
+### Phase 2: 화면 (UI, 더미 데이터) ✅
 
 - **Task 003: 기본 소품 카드와 카드 그리드 만들기** ✅ - 완료
   - 담당 기능: F001
@@ -89,14 +90,16 @@
   - ✅ `wishlist-view.tsx`에서 "소품 N개" 문구를 지우고 `ItemGrid`를 그림
   - ✅ 완료 기준 확인: lint·build 통과, build 라우트 표에서 `/` Revalidate 5m 유지. 브라우저에서 1280px 4열·375px 2열, 카드 9개에 이미지·이름·배지(mock-8 "기타") 확인. 스크린샷 `.playwright-mcp/task-003-desktop.png`·`task-003-mobile.png`. 디자인 다듬기 후 라이트·다크·375px 재확인, 스크린샷 `.playwright-mcp/task-003-design-desktop.png`·`task-003-design-mobile.png`
 
-- **Task 004: 카드의 예외 상태 만들기** - 우선순위
+- **Task 004: 카드의 예외 상태 만들기** ✅ - 완료
   - 담당 기능: F002, F004
-  - Task 005가 먼저 완료됨(2026-10-11 순서 변경). 이 Task는 `item-card.tsx`만 고친다
-  - `item-card.tsx`에 `"use client"` 추가(`onError` 때문). `imageUrl`이 비었거나 `onError`가 나면 `bg-muted` 배경 + `lucide-react` 아이콘(예: `ImageOff`) 대체 그림을 이미지와 같은 크기로 그림(F004). 종류가 `"기타"`면 그대로 "기타" 배지(F004)
-  - Task 003 상태에서는 mock-3처럼 `imageUrl`이 빈 문자열이면 `<img src="">`가 그려져 React 콘솔 오류("An empty string was passed to the src attribute")가 난다. 대체 그림 분기에서는 `imageUrl`이 비면 `<img>`를 아예 그리지 않는다
-  - 링크 처리(F002): `url`이 있으면 카드 전체를 `<a href={url} target="_blank" rel="noopener noreferrer">`로 감싸고, 없으면 `<div>`로 그려 이동이 없게 한다. 링크 없는 카드는 PRD 가정대로 기본 커서 + 흐린 배지(`opacity`·`text-muted-foreground`)로 구분
-  - 대체 그림은 이미지 영역 div(`rounded-2xl bg-muted`) 안에 `ImageOff` 아이콘만 가운데 둔다. 링크가 있으면 카드 div를 `<a>`로 바꾸고 `group` + 이미지 `transition group-hover:opacity-90`으로 눌리는 느낌을 준다
-  - 완료 기준: lint·build 통과, 브라우저에서 깨진 이미지·빈 이미지 카드에 회색 대체 그림, "기타" 배지, 링크 있는 카드 클릭 시 새 탭이 열리고 원래 탭은 목록 유지, 링크 없는 카드는 클릭해도 아무 일 없음
+  - See: `docs/roadmap/tasks/004-item-card-exception-states.md`
+  - ✅ Task 005가 먼저 완료된 뒤(2026-10-11 순서 변경) Phase 2의 마지막 Task로 진행. 변경 파일은 `src/components/features/wishlist/item-card.tsx` **하나**(`git diff --stat` 확인) — `wishlist-view.tsx`·`category-chips.tsx`·`item-grid.tsx`·`page.tsx`·`items.ts`·`mock-items.ts`·`src/components/ui/` 변경 없음, 더미 데이터 임시 변경도 없음
+  - ✅ `item-card.tsx`에 `"use client"` + `useState`(`react`)·`ImageOff`(`lucide-react`) import. `const [failed, setFailed] = useState(false)`, `showFallback = item.imageUrl === "" || failed`, `hasLink = item.url !== ""`. 맨 위 주석을 현행 설명(대체 그림·새 탭 링크·링크 없는 카드 흐림·"기타" 배지)으로 교체
+  - ✅ 대체 그림(F004): 이미지 영역 `div`(`aspect-square w-full overflow-hidden rounded-2xl bg-muted`)에 `flex items-center justify-center`를 더하고 `<ImageOff className="size-8 text-muted-foreground" aria-hidden="true" />`만 가운데. `imageUrl`이 빈 문자열이면 `<img>`를 아예 그리지 않아 React 콘솔 오류("An empty string was passed to the src attribute")가 사라짐. 정상 `<img>`에는 `onError={() => setFailed(true)}`·`transition group-hover:opacity-90` 추가, `eslint-disable-next-line @next/next/no-img-element` 주석 유지
+  - ✅ 링크 분기(F002): 안쪽 내용(이미지 영역 + 글자 영역)을 변수 `content`에 한 번만 적고, `hasLink`면 `<a href={item.url} target="_blank" rel="noopener noreferrer" className="group flex flex-col gap-2">{content}</a>`, 아니면 `<div className="flex flex-col gap-2">{content}</div>`(`Wrapper = "a" | "div"` 방식은 `href`·`target` prop 타입이 꼬여 피함). 링크 없는 카드만 `Badge variant="secondary" className="opacity-60"`(최종 결정, 스크린샷에서 충분히 구분됨), 링크 있는 카드는 `variant="secondary"` 그대로. `aria-label`(선택 사항)은 넣지 않음
+  - ✅ "기타" 배지(F004): `<Badge>{item.category}</Badge>`를 그대로 두어 mock-8이 "기타"로 나옴. `OTHER_CATEGORY` 비교 분기 없음
+  - ✅ **보완**(브라우저 확인에서 찾은 버그): mock-5의 깨진 이미지 요청이 약 80ms 만에 실패(`net::ERR_BLOCKED_BY_ORB`)해 React hydration보다 먼저 끝나면 `onError`가 울리지 않아 `<img>`가 그대로 남는 타이밍 버그가 반복 재현됨. `next/image`와 같은 방식으로 `<img>`에 ref 콜백 `markIfAlreadyFailed`를 달아 요소가 붙을 때 이미 깨져 있으면(`complete && naturalWidth === 0`) `setFailed(true)` 호출(`useEffect` 미사용). lazy 이미지는 요청 전이라 `complete`가 false여서 오탐 없음
+  - ✅ 완료 기준 확인: `npm run lint` 통과(경고 0), `npm run build` 통과, build 라우트 표에서 `/` `○` Revalidate 5m 유지(카드가 클라이언트 컴포넌트가 돼도 `page.tsx`가 서버 컴포넌트라 ISR 유지), `npm run check-all`(lint + typegen + tsc) 통과. 브라우저(headless Chrome + playwright-core 스크립트, dev 서버, 2026-10-25): 1280px에서 mock-3·mock-5 모두 `<img>` 없이 `ImageOff` + `bg-muted` 정사각형(236×236px, 다른 카드와 동일), 정상 이미지 7장 로드, 콘솔 오류·경고 0건, mock-8 "기타" 배지. mock-1은 `<a target="_blank" rel="noopener noreferrer">`, hover 시 opacity 1 → 0.9·커서 `pointer`, 클릭 시 새 탭 `https://example.com/products/oak-side-table`이 열리고 원래 탭은 `http://localhost:3000/` 유지. mock-7은 `<div>`, 커서 `auto`, 배지 opacity 0.6, 클릭해도 변화 없음. 375px 다크 모드 2열에서 대체 그림 164×164px 정사각형, `bg-muted`와 아이콘 구분됨. 보완 후 mock-5를 데스크톱·모바일 각 3회 새로 고침으로 재현 확인(모두 대체 그림, 오탐 0). 스크린샷 `.playwright-mcp/task-004-desktop.png`·`task-004-hover.png`·`task-004-no-link.png`·`task-004-mobile.png`
 
 - **Task 005: 종류 칩 필터와 빈 상태 만들기** ✅ - 완료
   - 담당 기능: F003, F004
@@ -109,12 +112,13 @@
 
 ### Phase 3: Notion 연결 (데이터)
 
-- **Task 006: Notion 소품을 Item으로 바꿔 화면에 연결하기**
+- **Task 006: Notion 소품을 Item으로 바꿔 화면에 연결하기** - 우선순위
   - 담당 기능: F001, F010, F011
   - `src/lib/notion.ts` 2차: `getItems(): Promise<Item[]>` — `fetchAllRows()` 결과를 열 이름 ↔ `Item` 매핑("이름" 제목 → `name`, "상품 링크" → `url`, "종류" Select → `category`(비면 `"기타"`), "이미지 URL" → `imageUrl`)으로 바꾼다. 매핑은 이 파일에만 둔다. `any` 금지 — SDK 응답 타입과 타입 가드로 속성을 읽는다
   - `fetchAllRows()`는 이미 `isFullPage`로 거른 `PageObjectResponse[]`를 돌려주므로, 매핑은 `row.properties["이름"]` 등을 Task 002에서 확인한 타입(`이름`=title, `상품 링크`=url, `종류`=select, `이미지 URL`=url)으로 읽는다. `row.id`가 `Item.id`, 정렬은 이미 최근 추가 순
   - `src/app/(marketing)/page.tsx`를 `async`로 바꿔 `await getItems()` 결과를 `WishlistView`에 넘긴다. 실패 시 오류를 잡지 않고 던져 `app/error.tsx`가 받게 한다(F011). `src/lib/mock-items.ts` 삭제
   - 완료 기준: lint·build 통과(`.env.local` 필요), 브라우저(`npm run dev`)에서 Notion의 실제 소품이 최근 추가 순으로 카드에 보이고 칩·링크·대체 이미지·"기타"가 실제 데이터로 동작
+  - 미확인 메모(Task 005 리뷰, Task 004 범위 밖): `category-chips.tsx`의 `overflow-x-auto` 때문에 칩의 키보드 포커스 링이 위아래로 잘릴 수 있다는 추정이 아직 확인되지 않았다. 실제 데이터 확인 중 Tab 키로 칩을 지날 때 눈에 띄면 이 Task 커밋에 섞지 않고 별도의 작은 수정(예: 칩 바깥 `div`에 `py-1`)으로 처리한다
 
 - **Task 007: 자동 갱신과 연결 오류 화면 확인하기**
   - 담당 기능: F010, F011
