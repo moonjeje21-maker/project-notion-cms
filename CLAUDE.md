@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 정확한 버전, 화면 목록, 폴더 그림, 설치된 shadcn 컴포넌트는 `README.md`에 있다.
 
-- `main`에 바로 커밋하지 않는다 (hook이 막는다. 명령 글자만 보므로 브랜치 만들기와 `git commit`·`git push`를 `&&`로 묶지 말고 따로 실행한다). 올릴 때는 `.claude/skills/ship/SKILL.md`의 순서(브랜치 → PR → 병합)를 따르고, 커밋 메시지와 PR은 영어로 쓴다. 사용자는 `/ship`으로 부른다
+- `main`에 바로 커밋하지 않는다 (hook이 막는다. 명령 글자만 보므로 브랜치 만들기와 `git commit`·`git push`를 `&&`로 묶지 말고 따로 실행한다). 올릴 때는 `.claude/skills/ship/SKILL.md`의 순서(브랜치 → PR → 병합)를 따르고, 커밋 메시지와 PR은 영어로 쓴다. 사용자는 `/ship`으로 부른다. `/ship` 실행이 최종 승인이므로 커밋·푸시 전에 다시 묻지 않는다
 - 명령만 실행할 때는 경로 규칙이 자동으로 읽히지 않으므로 직접 읽는다: 라이브러리 설치·버전 올리기·`npm audit`·설정 파일 수정 전과 build 캐시 오류에는 `.claude/rules/dependencies.md`, 처음 쓰는 API나 라이브러리 설치·업그레이드에는 `.claude/rules/library-docs.md`
 
 ## 프로젝트 문서
