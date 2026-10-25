@@ -2,7 +2,7 @@
 
 사고 싶은 인테리어 소품을 Notion 표에 "이름 + 상품 링크"만 적으면 웹 한 화면에 카드로 모아 보여 줘서, 흩어진 후보를 한곳에서 훑어보고 구매를 결정할 수 있게 한다.
 
-작성일: 2026-10-10 · 갱신일: 2026-10-11 (Task 003 완료·카드 디자인 반영) · 기준 PRD: `docs/prd/prd.md` · 접근법: 구조 우선 (구조 → UI → 데이터)
+작성일: 2026-10-10 · 갱신일: 2026-10-11 (Task 005 완료 반영) · 기준 PRD: `docs/prd/prd.md` · 접근법: 구조 우선 (구조 → UI → 데이터)
 
 ## 📌 가정
 
@@ -46,6 +46,7 @@
 - Task 001 산출물: `src/lib/items.ts`(`Item` 타입, `OTHER_CATEGORY`) · `src/lib/mock-items.ts`(Phase 2 확인용 더미 9개) · `src/components/features/wishlist/wishlist-view.tsx`(`items: Item[]` prop, Task 003부터 여기에 그리드를 넣음)
 - Task 002 산출물: `src/lib/notion.ts`의 `fetchAllRows()` — `collectPaginatedAPI`로 전체 행을 최근 추가 순으로 모아 `PageObjectResponse[]`를 돌려줌(`isFullPage` 필터 적용). 환경변수 누락 시 한국어 오류. `.env.local`에 값 입력 완료, README에 "환경변수" 절 있음
 - Task 003 산출물: `src/components/features/wishlist/item-card.tsx`(`ItemCard`: 테두리 없는 둥근 이미지(`rounded-2xl`) + 아래 이름·`Badge`, `Card` 부품 미사용, `"use client"` 없음) · `item-grid.tsx`(`ItemGrid`: `ul.grid grid-cols-2 gap-x-4 gap-y-6 lg:grid-cols-4`) — Task 004는 `ItemCard`에 예외 상태를, Task 005는 `wishlist-view.tsx`에 칩·빈 상태를 더함
+- Task 005 산출물: `src/components/features/wishlist/category-chips.tsx`(`CategoryChips`·`ALL_CATEGORY = "전체"`, `"use client"`) · `wishlist-view.tsx`가 칩·필터·빈 상태 2종(shadcn `Empty`)을 담당 — Task 004는 `item-card.tsx`만 고치면 됨
 
 ## 개발 단계
 
@@ -90,19 +91,21 @@
 
 - **Task 004: 카드의 예외 상태 만들기** - 우선순위
   - 담당 기능: F002, F004
+  - Task 005가 먼저 완료됨(2026-10-11 순서 변경). 이 Task는 `item-card.tsx`만 고친다
   - `item-card.tsx`에 `"use client"` 추가(`onError` 때문). `imageUrl`이 비었거나 `onError`가 나면 `bg-muted` 배경 + `lucide-react` 아이콘(예: `ImageOff`) 대체 그림을 이미지와 같은 크기로 그림(F004). 종류가 `"기타"`면 그대로 "기타" 배지(F004)
   - Task 003 상태에서는 mock-3처럼 `imageUrl`이 빈 문자열이면 `<img src="">`가 그려져 React 콘솔 오류("An empty string was passed to the src attribute")가 난다. 대체 그림 분기에서는 `imageUrl`이 비면 `<img>`를 아예 그리지 않는다
   - 링크 처리(F002): `url`이 있으면 카드 전체를 `<a href={url} target="_blank" rel="noopener noreferrer">`로 감싸고, 없으면 `<div>`로 그려 이동이 없게 한다. 링크 없는 카드는 PRD 가정대로 기본 커서 + 흐린 배지(`opacity`·`text-muted-foreground`)로 구분
   - 대체 그림은 이미지 영역 div(`rounded-2xl bg-muted`) 안에 `ImageOff` 아이콘만 가운데 둔다. 링크가 있으면 카드 div를 `<a>`로 바꾸고 `group` + 이미지 `transition group-hover:opacity-90`으로 눌리는 느낌을 준다
   - 완료 기준: lint·build 통과, 브라우저에서 깨진 이미지·빈 이미지 카드에 회색 대체 그림, "기타" 배지, 링크 있는 카드 클릭 시 새 탭이 열리고 원래 탭은 목록 유지, 링크 없는 카드는 클릭해도 아무 일 없음
 
-- **Task 005: 종류 칩 필터와 빈 상태 만들기**
+- **Task 005: 종류 칩 필터와 빈 상태 만들기** ✅ - 완료
   - 담당 기능: F003, F004
-  - `src/components/features/wishlist/category-chips.tsx` (`"use client"`): `categories: string[]`·`selected: string`·`onSelect` prop. "전체" 칩이 맨 앞, 선택된 칩은 `Button variant="default"`, 나머지는 `variant="outline"` (`size="sm"`, `aria-pressed`). 가로 스크롤 가능한 `flex flex-wrap gap-2` (참고 디자인처럼 휴대폰에서 가로 스크롤 한 줄 `flex gap-2 overflow-x-auto` + 칩 `shrink-0`로 할지 Task 005 계획 때 결정)
-  - `wishlist-view.tsx`에 `"use client"`와 `useState`로 선택 종류 상태를 둔다(기본 "전체"). 칩 목록은 `items`의 `category`를 등장 순서대로 중복 제거해 만들고, `"기타"`가 있으면 맨 끝으로 보낸다(PRD 가정). 필터는 브라우저 안에서만, 주소(쿼리)는 바꾸지 않는다 — `useSearchParams`·`router.push` 사용 금지(F010 캐시 보호)
-  - 빈 상태 2종(F004, shadcn `Empty` 사용): `items.length === 0`이면 칩을 숨기고 "아직 소품이 없어요"; 필터 결과 0개면 칩은 그대로 두고 "이 종류의 소품이 없어요"
-  - 더미 데이터로 두 빈 상태를 확인하기 위해 `mock-items.ts`에 빈 배열을 잠시 넘기거나, 소품이 없는 종류를 임시로 포함해 확인한 뒤 되돌린다 (코드로 남기지 않음)
-  - 완료 기준: lint·build 통과, 브라우저에서 칩 클릭 시 해당 종류 카드만 보이고 주소가 바뀌지 않음, "전체" 클릭 시 전체 복귀, 선택 칩 강조, "기타" 칩이 맨 끝, 소품 0개 화면에 칩 없이 "아직 소품이 없어요", 필터 결과 0개에 "이 종류의 소품이 없어요"
+  - See: `docs/roadmap/tasks/005-category-chips-and-empty-state.md`
+  - ✅ `src/components/features/wishlist/category-chips.tsx` (새 파일, `"use client"`): 상수 `ALL_CATEGORY = "전체"`와 `CategoryChips` — `categories`·`selected`·`onSelect` prop. "전체" 칩이 맨 앞, 선택된 칩은 `Button size="sm"` `variant="default"`, 나머지는 `variant="outline"`, 칩은 `rounded-full shrink-0` + `aria-pressed`. 바깥은 `div.flex.gap-2.overflow-x-auto` `role="group"`(휴대폰에서 가로 스크롤 한 줄, 세로 줄바꿈 없음). 색 타일·개수 표시 없음 (2026-10-11 사용자 디자인 결정)
+  - ✅ `wishlist-view.tsx`에 `"use client"`와 `useState(ALL_CATEGORY)`로 선택 종류 상태. 칩 목록은 `getCategories()`가 `items`의 `category`를 등장 순서대로 중복 제거하고 `"기타"`를 맨 끝으로 보냄(PRD 가정). 필터는 브라우저 안에서만 — `useSearchParams`·`router.push` 미사용, 주소(쿼리) 불변(F010 캐시 보호)
+  - ✅ 빈 상태 2종을 shadcn `Empty`로: 소품 0개 → 칩 없이 "아직 소품이 없어요"(`PackageOpen` 아이콘); 필터 결과 0개 → 칩 유지 + "이 종류의 소품이 없어요"(`SearchX` 아이콘)
+  - ✅ `item-grid.tsx`는 주석만 수정. 두 빈 상태는 더미 데이터를 임시로 바꿔 확인한 뒤 원복(코드로 남기지 않음)
+  - ✅ 완료 기준 확인: lint·build 통과, build 라우트 표에서 `/` `○` Revalidate 5m 유지(주소 쿼리 미사용). 브라우저에서 칩 순서 전체·가구·조명·화분·수납·러그·소품·기타, 가구 2장·조명 2장·기타 1장 필터, 주소 불변, "전체" 클릭 시 전체 복귀, 375px 한 줄 가로 스크롤, 빈 상태 2종 확인. 스크린샷 `.playwright-mcp/task-005-*.png`
 
 ### Phase 3: Notion 연결 (데이터)
 
