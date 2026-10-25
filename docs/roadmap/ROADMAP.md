@@ -2,7 +2,7 @@
 
 사고 싶은 인테리어 소품을 Notion 표에 "이름 + 상품 링크"만 적으면 웹 한 화면에 카드로 모아 보여 줘서, 흩어진 후보를 한곳에서 훑어보고 구매를 결정할 수 있게 한다.
 
-작성일: 2026-10-10 · 갱신일: 2026-10-25 (Task 006 완료 반영) · 기준 PRD: `docs/prd/prd.md` · 접근법: 구조 우선 (구조 → UI → 데이터)
+작성일: 2026-10-10 · 갱신일: 2026-10-25 (Task 007 완료·Phase 3 완료 반영) · 기준 PRD: `docs/prd/prd.md` · 접근법: 구조 우선 (구조 → UI → 데이터)
 
 ## 📌 가정
 
@@ -49,6 +49,7 @@
 - Task 005 산출물: `src/components/features/wishlist/category-chips.tsx`(`CategoryChips`·`ALL_CATEGORY = "전체"`, `"use client"`) · `wishlist-view.tsx`가 칩·필터·빈 상태 2종(shadcn `Empty`)을 담당
 - Task 004 산출물: `item-card.tsx`(`ItemCard`, `"use client"` + `useState`)가 카드의 예외 상태 전부를 처리 — 대체 그림(`imageUrl` 빈 문자열 또는 `onError` → `bg-muted` + `ImageOff`, `<img>` 미렌더), 링크 분기(`<a target="_blank" rel="noopener noreferrer" className="group …">` / `<div>`), 링크 없는 카드 배지 `opacity-60`, "기타" 배지는 `item.category` 그대로. hydration 전에 이미 실패한 이미지를 잡는 ref 콜백 `markIfAlreadyFailed`(`complete && naturalWidth === 0`) 보완 포함. Task 006은 데이터만 바꿨고 카드는 손대지 않았음
 - Task 006 산출물: `src/lib/notion.ts`의 `getItems(): Promise<Item[]>`(`fetchAllRows()` → `toItem` 매핑, try/catch 없이 오류를 위로) · `toSafeUrl(value: string | null)`(export, `http(s)://`로 시작하지 않는 값 → `""`) · `COLUMN` 상수(Notion 열 이름은 여기만) · 속성 읽기 도우미 `readTitle`·`readUrl`·`readSelect`(열 없음·타입 다름 → `""`, 종류 비면 `OTHER_CATEGORY`). `page.tsx`는 `async` + `await getItems()`. 더미 데이터 `mock-items.ts`는 삭제됨 — 이후 Task는 실제 Notion 데이터로 확인한다
+- Task 007 산출물: 코드 없음. `README.md` "환경변수" 절의 안내 2문단(build가 Notion을 읽어 `.env.local`·네트워크 필요 / 자동 갱신 확인은 `npm run build && npm run start`)과 확인 방법 — 연결 오류 재현은 `.env.local`을 고치지 않고 명령 앞 환경변수(`NOTION_API_KEY=wrong-key npm run dev -- -p 3001`, `NOTION_DATA_SOURCE_ID= …`)로 임시 서버를 띄워서 하고(이미 설정된 `process.env`를 `.env.local`이 덮지 않음), ISR 확인은 `next start`에서 응답 헤더 `x-nextjs-cache`(`HIT`/`STALE`)로 한다
 
 ## 개발 단계
 
@@ -111,7 +112,7 @@
   - ✅ `item-grid.tsx`는 주석만 수정. 두 빈 상태는 더미 데이터를 임시로 바꿔 확인한 뒤 원복(코드로 남기지 않음)
   - ✅ 완료 기준 확인: lint·build 통과, build 라우트 표에서 `/` `○` Revalidate 5m 유지(주소 쿼리 미사용). 브라우저에서 칩 순서 전체·가구·조명·화분·수납·러그·소품·기타, 가구 2장·조명 2장·기타 1장 필터, 주소 불변, "전체" 클릭 시 전체 복귀, 375px 한 줄 가로 스크롤, 빈 상태 2종 확인. 스크린샷 `.playwright-mcp/task-005-*.png`
 
-### Phase 3: Notion 연결 (데이터)
+### Phase 3: Notion 연결 (데이터) ✅
 
 - **Task 006: Notion 소품을 Item으로 바꿔 화면에 연결하기** ✅ - 완료
   - 담당 기능: F001, F010, F011
@@ -126,17 +127,20 @@
   - ✅ 생략·방법 메모: 예외 행(이미지·링크·종류 빈 행) 브라우저 확인은 Notion 7행이 모두 채워져 있고 **사용자 결정(2026-10-25)으로 테스트 행을 추가하지 않아 생략**(`task-006-exceptions.png` 없음, `toSafeUrl` 터미널 확인과 Task 004·005 더미 검증으로 대체). 작업 파일의 `node … import('./src/lib/notion.ts')` 터미널 명령은 Node ESM이 `@/` 별칭도 확장자 없는 상대 경로도 못 풀어 그대로는 실패하므로, 프로젝트 밖 스크래치패드의 `node:module.registerHooks` resolve 훅을 `node --import`로 끼워 수행했고 프로젝트 파일(`tsconfig.json` 포함)은 바꾸지 않음. 앞으로의 끝-대-끝 확인은 브라우저와 `npm run build`로 한다
   - 미확인 메모(Task 005 리뷰, Task 004 범위 밖): `category-chips.tsx`의 `overflow-x-auto` 때문에 칩의 키보드 포커스 링이 위아래로 잘릴 수 있다는 추정이 아직 확인되지 않았다. 눈에 띄면 별도의 작은 수정(예: 칩 바깥 `div`에 `py-1`)으로 처리한다. 또한 Task 004 리뷰 메모 "링크 안에서 `<img alt>`와 이름 `<p>`가 중복되어 스크린리더가 이름을 두 번 읽음"도 카드 쪽 별도 작은 수정으로 남아 있다
 
-- **Task 007: 자동 갱신과 연결 오류 화면 확인하기** - 우선순위
+- **Task 007: 자동 갱신과 연결 오류 화면 확인하기** ✅ - 완료
   - 담당 기능: F010, F011
-  - `npm run build && npm run start`로 ISR 확인(F010): 첫 방문 → Notion에서 소품 하나 추가/수정 → 5분 뒤 새로 고침 두 번에 반영되는지 확인. 개발 서버에서는 캐시가 돌지 않으므로 이 방법으로만 확인한다. build 출력에서 `/`가 300초 재검증 페이지로 표시되는지 다시 확인
-  - 연결 실패 확인(F011): `.env.local`의 `NOTION_API_KEY`를 일부러 틀리게 바꾸고 `npm run dev`로 `/`를 열어 `app/error.tsx`의 "문제가 생겼습니다" + "다시 시도" 버튼이 보이는지, 값을 되돌린 뒤 "다시 시도"(`retry`)를 누르면 목록이 다시 불러와지는지 확인. 확인 뒤 `.env.local`을 원래대로 되돌린다
-  - 환경변수 누락(`NOTION_DATA_SOURCE_ID` 삭제) 시 `src/lib/notion.ts`의 한국어 오류 메시지가 터미널에 찍히는지 확인하고, 메시지가 모호하면 다듬는다. 오류 화면 문구·버튼은 공용 그대로 두고 별도 페이지는 만들지 않는다(PRD 가정)
-  - `README.md` 첫 문단의 "Notion 연동은 아직 없습니다"를 현재 상태로 고친다 (Task 006에서 완료 — "Notion 데이터 소스에서 소품을 읽어 보여 줍니다"로 이미 바뀜)
-  - 완료 기준: lint·build 통과, `npm run start`에서 5분 뒤 Notion 변경이 반영됨, 잘못된 키로 오류 화면과 "다시 시도" 동작 확인, `.env.local` 원복
+  - See: `docs/roadmap/tasks/007-isr-and-error-screen-check.md`
+  - ✅ 확인 Task — 코드 변경은 `README.md` 2문단뿐("환경변수" 절 끝, "배포할 때는 Vercel …" 문장 앞): (1) `npm run build`도 빌드 중 Notion을 읽어 `/`를 미리 만들므로 `.env.local`과 네트워크가 없으면 빌드가 실패한다 (2) Notion에서 고친 내용은 약 5분 뒤 반영되며, 개발 서버는 캐시가 돌지 않아 자동 갱신 확인은 `npm run build && npm run start`로 한다. 3행 첫 문단은 Task 006에서 이미 고쳐져 변경 없음. `src/lib/notion.ts`의 `requireEnv` 메시지는 변수 이름·원인·고칠 위치가 모두 있어 **변경 없음**. `error.tsx`·`page.tsx`·`src/components/`·`items.ts` 변경 없음, 오류 전용 페이지 신설 없음(PRD 가정)
+  - ✅ 연결 실패 (a) 잘못된 키(F011): `.env.local`을 고치지 않고 명령 앞 환경변수 `NOTION_API_KEY=wrong-key npm run dev -- -p 3001`로 3001 임시 서버를 띄움(Next.js는 이미 설정된 `process.env`를 `.env.local`로 덮지 않음 — `@next/env` 로더로 사전 검증, 폴백 불필요). headless Chrome으로 `/` 열기 → `app/error.tsx`의 "문제가 생겼습니다" + "잠시 후 다시 시도해 주세요…" + "다시 시도" 버튼 각 1개, 카드 0장. "다시 시도" 클릭 → `/` 요청 1건 추가 발생, 오류 화면 재렌더, 서버 로그에 `APIResponseError: API token is invalid. (401 unauthorized)` 2회(첫 로드 + retry) → `retry`가 다시 불러오는 것 확인. dev 오버레이 "2 Issues"는 정상. 스크린샷 `.playwright-mcp/task-007-error.png`
+  - ✅ 연결 실패 (b) 환경변수 누락(F011): `NOTION_DATA_SOURCE_ID= npm run dev -- -p 3001`(빈 문자열도 "이미 설정됨"으로 취급돼 `.env.local`이 채우지 않음) → `/` 요청 HTTP 500, 서버 로그에 한국어 메시지 `환경변수 NOTION_DATA_SOURCE_ID가 없습니다. .env.local을 확인하세요` 1회 — 문구 그대로 유지
+  - ✅ 정상 복귀: 임시 서버 종료 후 `npm run start`(3000, build 결과)에서 `/` 200, `x-nextjs-cache: HIT`, 카드 7장, 첫 카드 "홈앤힐 포비 …". 스크린샷 `.playwright-mcp/task-007-isr-before.png`(첫 방문 12:49:50Z, build 12:48:01Z)
+  - ✅ 자동 갱신(F010) 1차: 사용자가 Notion 첫 소품 이름 끝에 " ✔" 추가 → 첫 방문 뒤 487초(12:57:58Z) 요청에서 이미 `HIT` + ✔ 반영. 반영 자체는 확인됐으나 "5분 안 불변"·"첫 요청 STALE"은 관찰 못 함(응답이 5분 창 이후에 왔고 그 사이 다른 방문으로 재생성이 끝나 있었던 것으로 **추정**). 스크린샷 `.playwright-mcp/task-007-isr-after.png`(✔ 보임)
+  - ✅ 자동 갱신(F010) 2차(원복을 두 번째 변경으로 활용): 재생성 12:57:58Z 기준 283초 뒤(13:02:41Z) 요청 → `HIT` + ✔ 그대로(**5분 안 불변 = 캐시 동작**). 310초 뒤(13:03:08Z) 요청 1 → `STALE` + ✔ 그대로(이전 페이지 제공, 뒤에서 재생성), 3초 뒤 요청 2 → `HIT` + ✔ 없음(**새 페이지 반영**). Next.js 문서의 "새로 고침 두 번" 동작과 일치. 메모: `next start`의 재생성 결과는 메모리에만 있고 `.next/server/app/index.html`(12:48:02Z)은 바뀌지 않음
+  - ✅ 완료 기준 확인: `npm run check-all` 통과(lint 경고 0, typegen 성공, tsc 오류 0), `npm run build` 통과(`- Environments: .env.local`, Notion 오류 없음, 라우트 표 `○ /  5m  1y`, `○ /_not-found`). 원복: Notion 이름 되돌림(요청 2 결과로 확인), `.env.local` 미수정, 3000·3001 임시 서버 모두 종료(`lsof` 비어 있음). 변경 파일 `README.md`(+4행)뿐. 남긴 일 없음 — 별도 작은 수정 3건(카드 `alt` 중복, 칩 포커스 링, `toSafeUrl` 대소문자·공백)은 그대로 보류
 
 ### Phase 4: 배포
 
-- **Task 008: Vercel에 배포하고 환경변수 등록하기**
+- **Task 008: Vercel에 배포하고 환경변수 등록하기** - 우선순위
   - 담당 기능: F010, F011
   - Vercel에 GitHub 저장소 `project-notion-cms` 연결(프레임워크 Next.js 자동 감지, 빌드 명령 `npm run build` 기본값). 무료 플랜
   - **첫 배포 전에** Vercel 프로젝트 설정 → Environment Variables에 `NOTION_API_KEY`·`NOTION_DATA_SOURCE_ID` 등록(F011 명세). 등록하지 않으면 빌드 중 Notion 읽기가 실패해 배포가 실패한다
