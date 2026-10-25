@@ -2,7 +2,7 @@
 
 사고 싶은 인테리어 소품을 Notion 표에 "이름 + 상품 링크"만 적으면 웹 한 화면에 카드로 모아 보여 줘서, 흩어진 후보를 한곳에서 훑어보고 구매를 결정할 수 있게 한다.
 
-작성일: 2026-10-10 · 갱신일: 2026-10-25 (Task 008 완료·전체 Task 완료) · 기준 PRD: `docs/prd/prd.md` · 접근법: 구조 우선 (구조 → UI → 데이터)
+작성일: 2026-10-10 · 갱신일: 2026-10-25 (Task 009 추가) · 기준 PRD: `docs/prd/prd.md` · 접근법: 구조 우선 (구조 → UI → 데이터)
 
 ## 📌 가정
 
@@ -32,6 +32,8 @@
 MVP 전체 완료(Task 000~008). 배포 주소는 `https://project-notion-cms.vercel.app`이다. 남은 것은 아래 "제외 (MVP 이후)" 절과 보류 중인 작은 수정 3건이다.
 
 ### 보류 중인 작은 수정
+
+→ Task 009로 진행(Phase 5)
 
 - 카드 `item-card.tsx`: `<img alt>`와 이름 `<p>`가 중복되어 스크린리더가 이름을 두 번 읽음
 - `category-chips.tsx`: `overflow-x-auto` 때문에 칩 포커스 링이 잘릴 수 있음 (미확인)
@@ -159,6 +161,16 @@ MVP 전체 완료(Task 000~008). 배포 주소는 `https://project-notion-cms.ve
   - ✅ F010 배포본 확인: Notion 수정 직후 요청 `x-vercel-cache: HIT`(age 125, 내용 불변) → 310초 뒤 요청 1 `STALE`(age 310, 이전 페이지) → 요청 2 `HIT`(age 2, 수정 반영)
   - ✅ 코드 변경은 `README.md` "배포" 절뿐. 로컬 `npm run build`·`npm run check-all` 통과. 계획 파일 없음(README만 바뀌고 사용자 단계가 먼저라 plan 모드 생략, 작업 파일이 계획 역할)
 
+### Phase 5: 다듬기
+
+- **Task 009: 보류 중인 작은 수정 3건 처리하기** - 우선순위
+  - 담당 기능: F002, F004, F003 (기존 기능 다듬기, 새 기능 ID 없음)
+  - See: `docs/roadmap/tasks/009-small-fixes.md`
+  - `src/components/features/wishlist/item-card.tsx`: 링크 안에서 `<img alt={item.name}>`과 이름 `<p>`가 겹쳐 스크린리더가 이름을 두 번 읽음 → `alt=""`로 바꿔 이미지를 장식 처리(이름은 `<p>`가 전달)
+  - `src/components/features/wishlist/category-chips.tsx`: `overflow-x-auto` 때문에 칩 포커스 링(3px)이 위아래로 잘릴 수 있음(미확인) → 먼저 Tab 키로 확인하고, 잘리면 바깥 `div`에 `py-1 -my-1`, 안 잘리면 코드 변경 없이 결과만 기록
+  - `src/lib/notion.ts`의 `toSafeUrl`: `HTTPS://`·앞뒤 공백 주소가 `""`가 되어 링크가 조용히 사라짐 → `trim()` 뒤 `/^https?:\/\//i`로 검사
+  - 완료 기준: lint·build 통과(`/` Revalidate 5m 유지), `img alt=""`·링크 접근성 이름에 소품 이름 1회, 포커스 링 확인 결과 기록, `toSafeUrl` 기대값 일치, 카드·칩 화면 회귀 없음
+
 ## 기능 ↔ Task 대조표
 
 | 기능 ID | 기능명 | Task |
@@ -170,7 +182,7 @@ MVP 전체 완료(Task 000~008). 배포 주소는 `https://project-notion-cms.ve
 | F010 | Notion 자동 갱신 | Task 001, Task 006, Task 007, Task 008 |
 | F011 | Notion 연결 오류 표시 | Task 002, Task 006, Task 007, Task 008 |
 
-기반 Task(기능 ID 없음): Task 000(스타터 정리), Task 001(타입·더미 데이터·부품 자리, F010의 `revalidate` 자리 포함), Task 002(SDK 설치·환경변수·연결 준비, F011의 환경변수 오류 포함)
+기반 Task(기능 ID 없음): Task 000(스타터 정리), Task 001(타입·더미 데이터·부품 자리, F010의 `revalidate` 자리 포함), Task 002(SDK 설치·환경변수·연결 준비, F011의 환경변수 오류 포함), Task 009(기존 기능 F002·F003·F004 다듬기, 새 ID 없음)
 
 ## 제외 (MVP 이후)
 
