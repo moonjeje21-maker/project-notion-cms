@@ -2,7 +2,7 @@
 
 사고 싶은 인테리어 소품을 Notion 표에 "이름 + 상품 링크"만 적으면 웹 한 화면에 카드로 모아 보여 줘서, 흩어진 후보를 한곳에서 훑어보고 구매를 결정할 수 있게 한다.
 
-작성일: 2026-10-10 · 갱신일: 2026-10-25 (Task 007 완료·Phase 3 완료 반영) · 기준 PRD: `docs/prd/prd.md` · 접근법: 구조 우선 (구조 → UI → 데이터)
+작성일: 2026-10-10 · 갱신일: 2026-10-25 (Task 008 완료·전체 Task 완료) · 기준 PRD: `docs/prd/prd.md` · 접근법: 구조 우선 (구조 → UI → 데이터)
 
 ## 📌 가정
 
@@ -27,6 +27,16 @@
 - **F010 Notion 자동 갱신**: 소품 목록 페이지에 `export const revalidate = 300`(ISR). 약 5분 뒤 방문 시 뒤에서 다시 읽는다. `cacheComponents`는 켜지 않는다
 - **F011 Notion 연결 오류 표시**: Notion 읽기 실패 시 공용 오류 화면(`app/error.tsx`, "다시 시도" = `retry` prop). 배포 전에 Vercel 환경변수(`NOTION_API_KEY`, `NOTION_DATA_SOURCE_ID`)를 먼저 등록한다
 
+## 현재 상태
+
+MVP 전체 완료(Task 000~008). 배포 주소는 `https://project-notion-cms.vercel.app`이다. 남은 것은 아래 "제외 (MVP 이후)" 절과 보류 중인 작은 수정 3건이다.
+
+### 보류 중인 작은 수정
+
+- 카드 `item-card.tsx`: `<img alt>`와 이름 `<p>`가 중복되어 스크린리더가 이름을 두 번 읽음
+- `category-chips.tsx`: `overflow-x-auto` 때문에 칩 포커스 링이 잘릴 수 있음 (미확인)
+- `toSafeUrl`(`src/lib/notion.ts`): `HTTPS://` 같은 대소문자와 앞뒤 공백을 허용
+
 ## 개발 워크플로우
 
 1. **작업 선택**: ROADMAP에서 `- 우선순위` 표시된 Task를 고릅니다
@@ -50,6 +60,7 @@
 - Task 004 산출물: `item-card.tsx`(`ItemCard`, `"use client"` + `useState`)가 카드의 예외 상태 전부를 처리 — 대체 그림(`imageUrl` 빈 문자열 또는 `onError` → `bg-muted` + `ImageOff`, `<img>` 미렌더), 링크 분기(`<a target="_blank" rel="noopener noreferrer" className="group …">` / `<div>`), 링크 없는 카드 배지 `opacity-60`, "기타" 배지는 `item.category` 그대로. hydration 전에 이미 실패한 이미지를 잡는 ref 콜백 `markIfAlreadyFailed`(`complete && naturalWidth === 0`) 보완 포함. Task 006은 데이터만 바꿨고 카드는 손대지 않았음
 - Task 006 산출물: `src/lib/notion.ts`의 `getItems(): Promise<Item[]>`(`fetchAllRows()` → `toItem` 매핑, try/catch 없이 오류를 위로) · `toSafeUrl(value: string | null)`(export, `http(s)://`로 시작하지 않는 값 → `""`) · `COLUMN` 상수(Notion 열 이름은 여기만) · 속성 읽기 도우미 `readTitle`·`readUrl`·`readSelect`(열 없음·타입 다름 → `""`, 종류 비면 `OTHER_CATEGORY`). `page.tsx`는 `async` + `await getItems()`. 더미 데이터 `mock-items.ts`는 삭제됨 — 이후 Task는 실제 Notion 데이터로 확인한다
 - Task 007 산출물: 코드 없음. `README.md` "환경변수" 절의 안내 2문단(build가 Notion을 읽어 `.env.local`·네트워크 필요 / 자동 갱신 확인은 `npm run build && npm run start`)과 확인 방법 — 연결 오류 재현은 `.env.local`을 고치지 않고 명령 앞 환경변수(`NOTION_API_KEY=wrong-key npm run dev -- -p 3001`, `NOTION_DATA_SOURCE_ID= …`)로 임시 서버를 띄워서 하고(이미 설정된 `process.env`를 `.env.local`이 덮지 않음), ISR 확인은 `next start`에서 응답 헤더 `x-nextjs-cache`(`HIT`/`STALE`)로 한다
+- Task 008 산출물: 코드 없음. 배포 주소 `https://project-notion-cms.vercel.app`(`main` 병합 시 자동 재배포), 환경변수는 코드가 아니라 Vercel 설정(Settings → Environment Variables)에 등록, `README.md` "배포" 절에 안내. 확인 방법은 배포 주소 응답 헤더 `x-vercel-cache`(`HIT`/`STALE`)로 ISR을 본다
 
 ## 개발 단계
 
@@ -138,16 +149,15 @@
   - ✅ 자동 갱신(F010) 2차(원복을 두 번째 변경으로 활용): 재생성 12:57:58Z 기준 283초 뒤(13:02:41Z) 요청 → `HIT` + ✔ 그대로(**5분 안 불변 = 캐시 동작**). 310초 뒤(13:03:08Z) 요청 1 → `STALE` + ✔ 그대로(이전 페이지 제공, 뒤에서 재생성), 3초 뒤 요청 2 → `HIT` + ✔ 없음(**새 페이지 반영**). Next.js 문서의 "새로 고침 두 번" 동작과 일치. 메모: `next start`의 재생성 결과는 메모리에만 있고 `.next/server/app/index.html`(12:48:02Z)은 바뀌지 않음
   - ✅ 완료 기준 확인: `npm run check-all` 통과(lint 경고 0, typegen 성공, tsc 오류 0), `npm run build` 통과(`- Environments: .env.local`, Notion 오류 없음, 라우트 표 `○ /  5m  1y`, `○ /_not-found`). 원복: Notion 이름 되돌림(요청 2 결과로 확인), `.env.local` 미수정, 3000·3001 임시 서버 모두 종료(`lsof` 비어 있음). 변경 파일 `README.md`(+4행)뿐. 남긴 일 없음 — 별도 작은 수정 3건(카드 `alt` 중복, 칩 포커스 링, `toSafeUrl` 대소문자·공백)은 그대로 보류
 
-### Phase 4: 배포
+### Phase 4: 배포 ✅
 
-- **Task 008: Vercel에 배포하고 환경변수 등록하기** - 우선순위
+- **Task 008: Vercel에 배포하고 환경변수 등록하기** ✅ - 완료
   - 담당 기능: F010, F011
-  - Vercel에 GitHub 저장소 `project-notion-cms` 연결(프레임워크 Next.js 자동 감지, 빌드 명령 `npm run build` 기본값). 무료 플랜
-  - **첫 배포 전에** Vercel 프로젝트 설정 → Environment Variables에 `NOTION_API_KEY`·`NOTION_DATA_SOURCE_ID` 등록(F011 명세). 등록하지 않으면 빌드 중 Notion 읽기가 실패해 배포가 실패한다
-  - 배포 후 배포 주소에서 소품 목록·칩 필터·카드 새 탭·대체 이미지·"기타" 배지가 개발 환경과 같이 보이는지 확인. 휴대폰 실기기(또는 브라우저 휴대폰 폭)에서 2열 확인
-  - F010 확인: Notion에 소품 추가 → 5분 뒤 배포 주소 새로 고침 두 번에 반영. 재생성이 실패해도 이전 내용이 유지되는 ISR 동작이므로 오류 화면이 보이지 않아야 정상
-  - `README.md`에 배포 주소와 "환경변수는 Vercel 설정에서 등록" 한 줄 추가
-  - 완료 기준: lint·build 통과(로컬), 배포 주소에서 전체 흐름(목록 → 칩 → 카드 새 탭) 동작, Notion 변경 5분 내 반영
+  - See: `docs/roadmap/tasks/008-vercel-deploy.md`
+  - ✅ 사용자가 Vercel 대시보드에서 GitHub 저장소 `project-notion-cms`를 Import → Deploy 전에 환경변수 `NOTION_API_KEY`·`NOTION_DATA_SOURCE_ID` 등록(F011 명세) → Deploy 성공. 프로덕션 주소 `https://project-notion-cms.vercel.app` (`main`에 병합하면 자동 재배포). Vercel CLI는 설치하지 않았음
+  - ✅ 배포본 확인(headless Chrome, 2026-10-25): 카드 7장·종류 칩·칩 필터·카드 새 탭·375px 2열·콘솔 오류 0건. 네이버 상품 주소 4건은 대체 그림(데이터 문제, 코드 정상). 스크린샷 `.playwright-mcp/task-008-prod-*.png`
+  - ✅ F010 배포본 확인: Notion 수정 직후 요청 `x-vercel-cache: HIT`(age 125, 내용 불변) → 310초 뒤 요청 1 `STALE`(age 310, 이전 페이지) → 요청 2 `HIT`(age 2, 수정 반영)
+  - ✅ 코드 변경은 `README.md` "배포" 절뿐. 로컬 `npm run build`·`npm run check-all` 통과. 계획 파일 없음(README만 바뀌고 사용자 단계가 먼저라 plan 모드 생략, 작업 파일이 계획 역할)
 
 ## 기능 ↔ Task 대조표
 
@@ -165,7 +175,7 @@
 ## 제외 (MVP 이후)
 
 - 소품 상세 페이지 (가격·크기가 생기면 그때)
-- 가격·크기 표시와 비교, 상품 링크에서 가격·이미지 자동 수집
+- 가격·크기 표시와 비교, 상품 링크에서 가격·이미지 자동 수집 (2026-10-25 QA에서 재확인: 서버 fetch로 `og:image` 추출 가능, 네이버는 headless 브라우저를 429로 막음. MVP 제외 유지)
 - 정렬 선택 (최신순 외 가격순 등)
 - 필터 값을 주소에 담아 공유 (주소 쿼리 필터)
 - 공간별(거실·침실 등) 필터, 이름 검색

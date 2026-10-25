@@ -49,7 +49,9 @@ NOTION_DATA_SOURCE_ID=  # 소품 표의 데이터 소스 ID
 
 Notion에서 고친 내용은 약 5분 뒤 반영됩니다. 개발 서버(`npm run dev`)에서는 캐시가 돌지 않아 매번 새로 읽으므로, 자동 갱신 확인은 `npm run build && npm run start`로 합니다.
 
-배포할 때는 Vercel 프로젝트 설정의 Environment Variables에 같은 이름으로 등록합니다.
+## 배포
+
+배포 주소는 `https://project-notion-cms.vercel.app` 입니다 (Vercel 무료 플랜, 프로덕션). `main`에 병합하면 Vercel이 자동으로 다시 배포합니다. 환경변수는 Vercel 프로젝트 설정(Settings → Environment Variables)에 등록되어 있으며 `.env.local`과 같은 이름을 씁니다. 값이 없으면 빌드가 실패합니다.
 
 ## 들어 있는 화면
 
