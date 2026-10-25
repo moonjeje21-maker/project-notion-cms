@@ -45,6 +45,10 @@ NOTION_DATA_SOURCE_ID=  # 소품 표의 데이터 소스 ID
 2. 소품 표를 열어 "연결(Connections)"에서 방금 만든 통합을 연결합니다 (연결하지 않으면 키가 맞아도 읽지 못합니다)
 3. 같은 표에서 "**데이터 소스 관리 → 데이터 소스 ID 복사**"로 ID를 복사합니다. 주소창에 보이는 데이터베이스 ID와는 다른 값이며, SDK 5.x는 데이터 소스 ID로만 조회합니다. 데이터베이스 ID를 넣으면 `object_not_found`(404) 오류가 납니다
 
+`npm run build`도 빌드 중 Notion을 읽어 `/`를 미리 만들므로, `.env.local`과 네트워크가 없으면 빌드가 실패합니다.
+
+Notion에서 고친 내용은 약 5분 뒤 반영됩니다. 개발 서버(`npm run dev`)에서는 캐시가 돌지 않아 매번 새로 읽으므로, 자동 갱신 확인은 `npm run build && npm run start`로 합니다.
+
 배포할 때는 Vercel 프로젝트 설정의 Environment Variables에 같은 이름으로 등록합니다.
 
 ## 들어 있는 화면
