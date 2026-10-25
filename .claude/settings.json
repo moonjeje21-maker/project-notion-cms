@@ -10,6 +10,31 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/lint-changed-file.sh",
+            "timeout": 60,
+            "statusMessage": "고친 파일 eslint 검사 중…"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check-after-work.sh",
+            "timeout": 600,
+            "statusMessage": "작업 후 lint·build 검사 중…"
+          }
+        ]
+      }
     ]
   }
 }
