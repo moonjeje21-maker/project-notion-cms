@@ -1,6 +1,6 @@
 # project-notion-cms
 
-**Living Wishlist** — 사고 싶은 인테리어 소품을 Notion 표에 "이름 + 상품 링크"만 적으면 웹 한 화면에 카드로 모아 보여 주는 읽기 전용 사이트입니다. 사용자는 본인(Notion에서 입력)과 주소를 공유받은 지인(웹에서 읽기만)이며 로그인은 없습니다. 스타터 킷 `claude-nextjs`(Next.js · TypeScript · Tailwind CSS · shadcn/ui · lucide-react)에서 시작했고, Notion 연동은 아직 없습니다.
+**Living Wishlist** — 사고 싶은 인테리어 소품을 Notion 표에 "이름 + 상품 링크"만 적으면 웹 한 화면에 카드로 모아 보여 주는 읽기 전용 사이트입니다. 사용자는 본인(Notion에서 입력)과 주소를 공유받은 지인(웹에서 읽기만)이며 로그인은 없습니다. 스타터 킷 `claude-nextjs`(Next.js · TypeScript · Tailwind CSS · shadcn/ui · lucide-react)에서 시작했고, Notion 데이터 소스에서 소품을 읽어 보여 줍니다.
 
 ## 기술 스택 (2026-10-04 기준)
 
@@ -78,7 +78,6 @@ src/
 │  └─ providers/         앱 전체를 감싸는 설정 (theme-provider)
 └─ lib/                  0층 · 데이터와 도우미
    ├─ items.ts           Item 타입 (소품 한 개의 모양)
-   ├─ mock-items.ts      화면 확인용 더미 소품 (Notion 연결 뒤 삭제)
    ├─ notion.ts          Notion 연결과 소품 표 읽기
    ├─ site.ts            사이트 이름, 메뉴 목록
    └─ utils.ts           cn() — 클래스 이름 합치기 도우미

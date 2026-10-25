@@ -2,14 +2,14 @@
 
 사고 싶은 인테리어 소품을 Notion 표에 "이름 + 상품 링크"만 적으면 웹 한 화면에 카드로 모아 보여 줘서, 흩어진 후보를 한곳에서 훑어보고 구매를 결정할 수 있게 한다.
 
-작성일: 2026-10-10 · 갱신일: 2026-10-25 (Task 004 완료·Phase 2 완료, PR #22 자동 검사 hook 워크플로우 반영) · 기준 PRD: `docs/prd/prd.md` · 접근법: 구조 우선 (구조 → UI → 데이터)
+작성일: 2026-10-10 · 갱신일: 2026-10-25 (Task 006 완료 반영) · 기준 PRD: `docs/prd/prd.md` · 접근법: 구조 우선 (구조 → UI → 데이터)
 
 ## 📌 가정
 
 - **파일 자리**: PRD는 `Item` 타입과 Notion 연동 코드의 폴더를 정하지 않았다. `CLAUDE.md` 계층 규칙에 따라 데이터·도우미는 `src/lib/`에 둔다 — 타입 `src/lib/items.ts`, 더미 데이터 `src/lib/mock-items.ts`, Notion 연동(열 이름 ↔ `Item` 매핑 포함) `src/lib/notion.ts`. 화면 부품은 `src/components/features/wishlist/`에 둔다 (`item-card.tsx`, `item-grid.tsx`, `category-chips.tsx`, `wishlist-view.tsx`)
 - **Notion 열 타입**: "상품 링크"·"이미지 URL" 열은 Notion **URL 속성**으로 가정한다. 실제 타입이 다르면(예: 텍스트) `src/lib/notion.ts`의 매핑만 고친다 — Task 002에서 실제 열 확인: `이름`=title, `상품 링크`=url, `종류`=select, `이미지 URL`=url (가정 맞음)
 - **"기타" 처리 시점**: `Item.category`는 비어 있지 않게 유지한다. Notion "종류"가 비어 있으면 매핑 단계(`src/lib/notion.ts`)에서 `"기타"`로 바꿔 넣고, 화면은 `category` 값을 그대로 배지와 칩에 쓴다. 더미 데이터에도 `"기타"` 소품을 하나 넣어 화면 Phase에서 미리 확인한다
-- **더미 데이터의 수명**: 더미 데이터 `src/lib/mock-items.ts`는 Phase 2(화면) 확인용이며, Notion 연결(Task 006)에서 실제 데이터로 바꾼 뒤 삭제한다
+- **더미 데이터의 수명**: 더미 데이터 `src/lib/mock-items.ts`는 Phase 2(화면) 확인용이며, Notion 연결(Task 006)에서 실제 데이터로 바꾼 뒤 삭제한다 — Task 006에서 삭제 완료
 - **클라이언트 경계**: 이미지 깨짐 감지(`onError`)와 칩 선택 상태는 브라우저에서만 동작하므로 `item-card.tsx`·`category-chips.tsx`·`wishlist-view.tsx`에 `"use client"`를 붙인다. 소품 목록 페이지(`page.tsx`)는 서버 컴포넌트로 남겨 Notion을 읽고 `items`를 props로 넘긴다
 - **페이지 머리 영역**: 현재 `page.tsx`의 `PageHeader`는 그대로 두고, 자리 표시 문구만 사이트 설명(`siteConfig.description`)으로 바꾼다. 머리글의 사이트 이름·다크 모드 버튼은 PRD 가정대로 손대지 않는다
 - **빌드 시 Notion 접근**: Task 006부터 `npm run build`가 빌드 중 Notion을 읽어 `/`를 미리 만들므로, `.env.local`과 네트워크가 있어야 build가 통과한다. 환경변수가 없으면 `src/lib/notion.ts`가 한국어 메시지로 바로 오류를 던지게 해 원인을 알 수 있게 한다
@@ -43,11 +43,12 @@
 - shadcn 부품 `src/components/ui/`: `badge`(종류 배지), `button`(칩), `card`(설치돼 있으나 소품 카드에는 쓰지 않음), `empty`(빈 상태) · 아이콘 `lucide-react`
 - `src/lib/site.ts` (사이트 이름·메뉴, 이미 Living Wishlist 값) · `src/lib/utils.ts`의 `cn()`
 - `.gitignore`의 `.env*` 규칙 (`.env.local`이 git에 올라가지 않음)
-- Task 001 산출물: `src/lib/items.ts`(`Item` 타입, `OTHER_CATEGORY`) · `src/lib/mock-items.ts`(Phase 2 확인용 더미 9개) · `src/components/features/wishlist/wishlist-view.tsx`(`items: Item[]` prop, Task 003부터 여기에 그리드를 넣음)
+- Task 001 산출물: `src/lib/items.ts`(`Item` 타입, `OTHER_CATEGORY`) · `src/lib/mock-items.ts`(Phase 2 확인용 더미 9개, Task 006에서 삭제) · `src/components/features/wishlist/wishlist-view.tsx`(`items: Item[]` prop, Task 003부터 여기에 그리드를 넣음)
 - Task 002 산출물: `src/lib/notion.ts`의 `fetchAllRows()` — `collectPaginatedAPI`로 전체 행을 최근 추가 순으로 모아 `PageObjectResponse[]`를 돌려줌(`isFullPage` 필터 적용). 환경변수 누락 시 한국어 오류. `.env.local`에 값 입력 완료, README에 "환경변수" 절 있음
 - Task 003 산출물: `src/components/features/wishlist/item-card.tsx`(`ItemCard`: 테두리 없는 둥근 이미지(`rounded-2xl`) + 아래 이름·`Badge`, `Card` 부품 미사용, `"use client"` 없음) · `item-grid.tsx`(`ItemGrid`: `ul.grid grid-cols-2 gap-x-4 gap-y-6 lg:grid-cols-4`) — 이후 Task 004가 `ItemCard`에 예외 상태를, Task 005가 `wishlist-view.tsx`에 칩·빈 상태를 더했음(`item-card.tsx`의 `"use client"` 없음은 Task 004에서 바뀜)
 - Task 005 산출물: `src/components/features/wishlist/category-chips.tsx`(`CategoryChips`·`ALL_CATEGORY = "전체"`, `"use client"`) · `wishlist-view.tsx`가 칩·필터·빈 상태 2종(shadcn `Empty`)을 담당
-- Task 004 산출물: `item-card.tsx`(`ItemCard`, `"use client"` + `useState`)가 카드의 예외 상태 전부를 처리 — 대체 그림(`imageUrl` 빈 문자열 또는 `onError` → `bg-muted` + `ImageOff`, `<img>` 미렌더), 링크 분기(`<a target="_blank" rel="noopener noreferrer" className="group …">` / `<div>`), 링크 없는 카드 배지 `opacity-60`, "기타" 배지는 `item.category` 그대로. hydration 전에 이미 실패한 이미지를 잡는 ref 콜백 `markIfAlreadyFailed`(`complete && naturalWidth === 0`) 보완 포함. Task 006은 데이터만 바꾸면 되고 카드는 손대지 않음
+- Task 004 산출물: `item-card.tsx`(`ItemCard`, `"use client"` + `useState`)가 카드의 예외 상태 전부를 처리 — 대체 그림(`imageUrl` 빈 문자열 또는 `onError` → `bg-muted` + `ImageOff`, `<img>` 미렌더), 링크 분기(`<a target="_blank" rel="noopener noreferrer" className="group …">` / `<div>`), 링크 없는 카드 배지 `opacity-60`, "기타" 배지는 `item.category` 그대로. hydration 전에 이미 실패한 이미지를 잡는 ref 콜백 `markIfAlreadyFailed`(`complete && naturalWidth === 0`) 보완 포함. Task 006은 데이터만 바꿨고 카드는 손대지 않았음
+- Task 006 산출물: `src/lib/notion.ts`의 `getItems(): Promise<Item[]>`(`fetchAllRows()` → `toItem` 매핑, try/catch 없이 오류를 위로) · `toSafeUrl(value: string | null)`(export, `http(s)://`로 시작하지 않는 값 → `""`) · `COLUMN` 상수(Notion 열 이름은 여기만) · 속성 읽기 도우미 `readTitle`·`readUrl`·`readSelect`(열 없음·타입 다름 → `""`, 종류 비면 `OTHER_CATEGORY`). `page.tsx`는 `async` + `await getItems()`. 더미 데이터 `mock-items.ts`는 삭제됨 — 이후 Task는 실제 Notion 데이터로 확인한다
 
 ## 개발 단계
 
@@ -112,20 +113,25 @@
 
 ### Phase 3: Notion 연결 (데이터)
 
-- **Task 006: Notion 소품을 Item으로 바꿔 화면에 연결하기** - 우선순위
+- **Task 006: Notion 소품을 Item으로 바꿔 화면에 연결하기** ✅ - 완료
   - 담당 기능: F001, F010, F011
-  - `src/lib/notion.ts` 2차: `getItems(): Promise<Item[]>` — `fetchAllRows()` 결과를 열 이름 ↔ `Item` 매핑("이름" 제목 → `name`, "상품 링크" → `url`, "종류" Select → `category`(비면 `"기타"`), "이미지 URL" → `imageUrl`)으로 바꾼다. 매핑은 이 파일에만 둔다. `any` 금지 — SDK 응답 타입과 타입 가드로 속성을 읽는다
-  - `fetchAllRows()`는 이미 `isFullPage`로 거른 `PageObjectResponse[]`를 돌려주므로, 매핑은 `row.properties["이름"]` 등을 Task 002에서 확인한 타입(`이름`=title, `상품 링크`=url, `종류`=select, `이미지 URL`=url)으로 읽는다. `row.id`가 `Item.id`, 정렬은 이미 최근 추가 순
-  - `src/app/(marketing)/page.tsx`를 `async`로 바꿔 `await getItems()` 결과를 `WishlistView`에 넘긴다. 실패 시 오류를 잡지 않고 던져 `app/error.tsx`가 받게 한다(F011). `src/lib/mock-items.ts` 삭제
-  - 완료 기준: lint·build 통과(`.env.local` 필요), 브라우저(`npm run dev`)에서 Notion의 실제 소품이 최근 추가 순으로 카드에 보이고 칩·링크·대체 이미지·"기타"가 실제 데이터로 동작
-  - 미확인 메모(Task 005 리뷰, Task 004 범위 밖): `category-chips.tsx`의 `overflow-x-auto` 때문에 칩의 키보드 포커스 링이 위아래로 잘릴 수 있다는 추정이 아직 확인되지 않았다. 실제 데이터 확인 중 Tab 키로 칩을 지날 때 눈에 띄면 이 Task 커밋에 섞지 않고 별도의 작은 수정(예: 칩 바깥 `div`에 `py-1`)으로 처리한다
+  - See: `docs/roadmap/tasks/006-notion-items-mapping.md`
+  - ✅ `src/lib/notion.ts` 2차: 맨 위 설명 주석 "Notion 연결과 소품 표 읽기. 열 이름 ↔ Item 매핑은 이 파일에만 둔다". `COLUMN = { name: "이름", url: "상품 링크", category: "종류", imageUrl: "이미지 URL" } as const` — Notion 열 이름은 이 상수 하나에만 적고, 열 이름이 바뀌면 여기만 고친다. import는 코드베이스 관례대로 `@/lib/items`(`OTHER_CATEGORY`, `type Item`)
+  - ✅ `export function toSafeUrl(value: string | null): string`(Task 004 code-reviewer 메모 반영): `null`·빈 값 → `""`, `http://`·`https://`로 **시작하지 않는** 값 → `""`, 그 외 그대로. `상품 링크`·`이미지 URL` 둘 다 거쳐 `<a href>`·`<img src>`에 `javascript:` 같은 값이 들어가지 않게 막음. `new URL()` 파싱 없음
+  - ✅ 속성 읽기 도우미 `readTitle`·`readUrl`·`readSelect`(각 `(row: PageObjectResponse, name: string) => string`): `row.properties[name]`을 꺼내 `prop?.type` 비교로 좁힘(`any`·타입 단언 없음). 열이 없거나 타입이 다르면 `""`을 돌려주고 **오류를 던지지 않음**. 제목은 `plain_text` 이어 붙임, URL은 `toSafeUrl(prop.url)`, 선택은 `prop.select?.name ?? ""` → 비면 `OTHER_CATEGORY`(매핑 단계 한 곳에서만 "기타" 처리)
+  - ✅ `toItem(row): Item`(export 안 함, `row.id` → `Item.id`) · `export async function getItems(): Promise<Item[]>` — `fetchAllRows()` → `map(toItem)`. 정렬 없음(이미 `created_time` 내림차순), try/catch 없음(환경변수 누락·API 실패는 그대로 위로 던져 `app/error.tsx`가 받음, F011). `fetchAllRows()` 위 주석을 "매핑은 getItems()가 한다"로 현행화
+  - ✅ `src/app/(marketing)/page.tsx`: `mockItems` import 삭제, `import { getItems } from "@/lib/notion"`, `export default async function Home()` + `const items = await getItems()` + `<WishlistView items={items} />`. `export const revalidate = 300` 유지(F010), 주석 현행화. try/catch·`"use client"`·`dynamic` 없음
+  - ✅ `src/lib/mock-items.ts` 삭제(`rm`), `grep -rn "mock-items\|mockItems" src/` 0건. `README.md` 3행 "Notion 연동은 아직 없습니다" → "Notion 데이터 소스에서 소품을 읽어 보여 줍니다"(Task 007 몫을 미리 처리), 폴더 그림의 `mock-items.ts` 줄 삭제. 변경 파일은 `notion.ts`(M)·`page.tsx`(M)·`mock-items.ts`(D)·`README.md`(M) 4개뿐 — `src/components/`·`items.ts`·`error.tsx` 변경 없음
+  - ✅ 완료 기준 확인: `npm run lint` 통과(경고 0), `npm run build` 통과(빌드 로그 `- Environments: .env.local`, Notion 오류 없음, 라우트 표 `○ /` Revalidate 5m 유지 — `async` 페이지로 바꿔도 ISR 유지), `npm run check-all` 통과. 터미널 `getItems()` → 7행, 첫 항목 5개 필드 모두 `string`, 종류 목록 `소파·소파·라운지체어·그릇·라운지체어·소파·수납`(빈 값 0) · `toSafeUrl` → `["https://a.com","http://a.com","","","",""]` 기대값 일치(환경변수 없이 실행). 브라우저(headless Chrome + playwright-core 스크립트, dev 서버, 2026-10-25): 실제 소품 7장이 Notion 생성 시각 내림차순, 이름·종류 배지 일치, 칩 `전체 · 소파 · 라운지체어 · 그릇 · 수납`(등장 순서, "기타" 없음), "소파" 클릭 → 3장·주소 불변, 7장 모두 `<a target="_blank" rel="noopener noreferrer">`, 첫 카드 클릭 → 새 탭에 상품 주소, 375px 2열·칩 한 줄, React 콘솔 오류 0건. naver 상품 페이지 주소 4건은 `net::ERR_BLOCKED_BY_ORB`로 Task 004 대체 그림이 나옴(데이터 입력 문제, 코드 정상). 스크린샷 `.playwright-mcp/task-006-desktop.png`·`task-006-mobile.png`
+  - ✅ 생략·방법 메모: 예외 행(이미지·링크·종류 빈 행) 브라우저 확인은 Notion 7행이 모두 채워져 있고 **사용자 결정(2026-10-25)으로 테스트 행을 추가하지 않아 생략**(`task-006-exceptions.png` 없음, `toSafeUrl` 터미널 확인과 Task 004·005 더미 검증으로 대체). 작업 파일의 `node … import('./src/lib/notion.ts')` 터미널 명령은 Node ESM이 `@/` 별칭도 확장자 없는 상대 경로도 못 풀어 그대로는 실패하므로, 프로젝트 밖 스크래치패드의 `node:module.registerHooks` resolve 훅을 `node --import`로 끼워 수행했고 프로젝트 파일(`tsconfig.json` 포함)은 바꾸지 않음. 앞으로의 끝-대-끝 확인은 브라우저와 `npm run build`로 한다
+  - 미확인 메모(Task 005 리뷰, Task 004 범위 밖): `category-chips.tsx`의 `overflow-x-auto` 때문에 칩의 키보드 포커스 링이 위아래로 잘릴 수 있다는 추정이 아직 확인되지 않았다. 눈에 띄면 별도의 작은 수정(예: 칩 바깥 `div`에 `py-1`)으로 처리한다. 또한 Task 004 리뷰 메모 "링크 안에서 `<img alt>`와 이름 `<p>`가 중복되어 스크린리더가 이름을 두 번 읽음"도 카드 쪽 별도 작은 수정으로 남아 있다
 
-- **Task 007: 자동 갱신과 연결 오류 화면 확인하기**
+- **Task 007: 자동 갱신과 연결 오류 화면 확인하기** - 우선순위
   - 담당 기능: F010, F011
   - `npm run build && npm run start`로 ISR 확인(F010): 첫 방문 → Notion에서 소품 하나 추가/수정 → 5분 뒤 새로 고침 두 번에 반영되는지 확인. 개발 서버에서는 캐시가 돌지 않으므로 이 방법으로만 확인한다. build 출력에서 `/`가 300초 재검증 페이지로 표시되는지 다시 확인
   - 연결 실패 확인(F011): `.env.local`의 `NOTION_API_KEY`를 일부러 틀리게 바꾸고 `npm run dev`로 `/`를 열어 `app/error.tsx`의 "문제가 생겼습니다" + "다시 시도" 버튼이 보이는지, 값을 되돌린 뒤 "다시 시도"(`retry`)를 누르면 목록이 다시 불러와지는지 확인. 확인 뒤 `.env.local`을 원래대로 되돌린다
   - 환경변수 누락(`NOTION_DATA_SOURCE_ID` 삭제) 시 `src/lib/notion.ts`의 한국어 오류 메시지가 터미널에 찍히는지 확인하고, 메시지가 모호하면 다듬는다. 오류 화면 문구·버튼은 공용 그대로 두고 별도 페이지는 만들지 않는다(PRD 가정)
-  - `README.md` 첫 문단의 "Notion 연동은 아직 없습니다"를 현재 상태로 고친다
+  - `README.md` 첫 문단의 "Notion 연동은 아직 없습니다"를 현재 상태로 고친다 (Task 006에서 완료 — "Notion 데이터 소스에서 소품을 읽어 보여 줍니다"로 이미 바뀜)
   - 완료 기준: lint·build 통과, `npm run start`에서 5분 뒤 Notion 변경이 반영됨, 잘못된 키로 오류 화면과 "다시 시도" 동작 확인, `.env.local` 원복
 
 ### Phase 4: 배포
