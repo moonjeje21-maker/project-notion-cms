@@ -32,7 +32,7 @@ argument-hint: "[변경 설명 (선택)]"
 
 바뀐 파일이 `.md` 파일과 `.claude/` 아래뿐이면 1~2번을 건너뛴다.
 
-1. `npm run lint`와 `npm run build`를 실행한다. 이 대화에서 마지막 수정 뒤에 둘 다 통과했으면 다시 돌리지 않는다
+1. `npm run lint`와 `npm run build`를 실행한다. 이 대화에서 마지막 수정 뒤에 둘 다 통과했으면(직접 돌렸든, 턴 끝의 Stop hook `check-after-work.sh`가 통과시켰든) 다시 돌리지 않는다
 2. `src/` 아래가 바뀌었으면 `code-reviewer` 에이전트를 부른다. 바뀐 파일 경로, 변경 의도, `git diff` 결과, lint·build 결과를 넘긴다. 결론이 "승인"이 아니면 멈추고 리뷰 내용을 사용자에게 전한다
 3. `.claude/` 아래의 `.json`·`.sh` 파일이 바뀌었으면 형식을 확인한다: `.json`은 `jq empty <파일>`, `.sh`는 `bash -n <파일>`
 

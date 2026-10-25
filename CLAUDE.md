@@ -31,6 +31,8 @@ npm run check-all
 npm run build
 ```
 
+턴이 끝날 때 Stop hook(`.claude/hooks/check-after-work.sh`)이 `src/`·설정 파일에 커밋 안 된 변경이 있으면 이 두 명령을 자동으로 돌린다. 실패하면 턴이 끝나지 않고 오류가 Claude에게 전달되므로 이어서 고친다 (자동 재시도는 1회, 그 뒤에는 사용자에게만 알린다). 통과한 변경은 지문을 `node_modules/.cache/living-wishlist-check/`에 저장해 다시 검사하지 않는다. Edit/Write로 `src/`의 `.ts`·`.tsx`를 고치면 PostToolUse hook(`lint-changed-file.sh`)이 그 파일만 바로 eslint로 검사한다
+
 
 ## 구조
 

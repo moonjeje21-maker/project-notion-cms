@@ -116,3 +116,15 @@ npm outdated                      # 오래된 라이브러리 확인
 ```
 
 아이콘은 [lucide.dev](https://lucide.dev/icons)에서 찾아 `import { 이름 } from "lucide-react"`로 씁니다.
+
+## 자동 검사 (Claude Code hook)
+
+hook은 "정해진 순간에 자동으로 도는 작은 스크립트"입니다. 설정은 `.claude/settings.json`, 스크립트는 `.claude/hooks/`에 있습니다.
+
+| 순간 | 스크립트 | 하는 일 |
+|---|---|---|
+| Claude가 Edit/Write로 `src/`의 `.ts`·`.tsx` 파일을 고친 직후 | `lint-changed-file.sh` | 그 파일 하나만 `eslint`로 검사. 오류가 있으면 Claude가 바로 고칩니다 |
+| Claude가 답변(턴)을 끝낼 때 | `check-after-work.sh` | `src/`나 설정 파일에 커밋 안 된 변경이 있으면 `npm run check-all`과 `npm run build`를 실행. 실패하면 Claude가 이어서 고칩니다 (자동 재시도 1회) |
+| Claude가 Bash를 실행하기 전 | `block-main-commit.sh` | `main` 브랜치에서는 커밋과 푸시를 막습니다 |
+
+같은 변경은 한 번만 검사합니다 (통과 기록은 `node_modules/.cache/living-wishlist-check/`에 남고 git에는 올라가지 않습니다). 전체 로그는 같은 폴더의 `last.log`에 있습니다. hook 목록은 Claude Code에서 `/hooks`로 볼 수 있습니다.
