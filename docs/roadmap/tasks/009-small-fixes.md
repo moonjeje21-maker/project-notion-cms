@@ -1,6 +1,6 @@
 # Task 009: 보류 중인 작은 수정 3건 처리하기
 
-담당 기능: F002, F003, F004 (기존 기능 다듬기, 새 기능 ID 없음) · Phase 5 · 상태: 대기
+담당 기능: F002, F003, F004 (기존 기능 다듬기, 새 기능 ID 없음) · Phase 5 · 상태: 완료
 
 ## 맥락
 
@@ -45,23 +45,23 @@ MVP 전체가 완료되어 배포돼 있다(`https://project-notion-cms.vercel.a
 
 ## 구현 단계
 
-- [ ] 1. (developer) `item-card.tsx` 50행 `alt={item.name}` → `alt=""` + 이유 주석 한 줄
-- [ ] 2. (developer) `notion.ts` `toSafeUrl`을 `trim()` + `/^https?:\/\//i` 방식으로 교체, 주석 현행화. (2번 수정용 확인 코드는 넣지 않는다)
-- [ ] 3. `npm run lint` → `npm run check-all` → `npm run build` (라우트 표에서 `/` `○` Revalidate 5m 유지 확인)
-- [ ] 4. (메인 대화) 브라우저에서 Tab 키로 칩 포커스 링이 잘리는지 확인. 잘리면 developer를 다시 불러 `category-chips.tsx` 바깥 `div`에 `py-1 -my-1` 추가. 스크린샷 `.playwright-mcp/task-009-focus.png`
-- [ ] 5. (메인 대화) 카드 확인: DOM에서 `img[alt=""]`가 정상 이미지 카드에 있고, 링크 `<a>`의 접근성 이름에 소품 이름이 한 번만 들어가는지. 카드 화면이 Task 004 스크린샷과 같은지(회귀 없음). 스크린샷 `.playwright-mcp/task-009-desktop.png`
-- [ ] 6. 터미널에서 `toSafeUrl` 기대값 확인 (스크래치패드 resolve 훅 사용)
-- [ ] 7. `git status`·`git diff --stat`으로 변경 파일 확인, `.env.local` 미수정 확인
+- [x] 1. (developer) `item-card.tsx` 50행 `alt={item.name}` → `alt=""` + 이유 주석 한 줄
+- [x] 2. (developer) `notion.ts` `toSafeUrl`을 `trim()` + `/^https?:\/\//i` 방식으로 교체, 주석 현행화. (2번 수정용 확인 코드는 넣지 않는다)
+- [x] 3. `npm run lint` → `npm run check-all` → `npm run build` (라우트 표에서 `/` `○` Revalidate 5m 유지 확인)
+- [x] 4. (메인 대화) 브라우저에서 Tab 키로 칩 포커스 링이 잘리는지 확인. 잘리면 developer를 다시 불러 `category-chips.tsx` 바깥 `div`에 `py-1 -my-1` 추가. 스크린샷 `.playwright-mcp/task-009-focus.png`
+- [x] 5. (메인 대화) 카드 확인: DOM에서 `img[alt=""]`가 정상 이미지 카드에 있고, 링크 `<a>`의 접근성 이름에 소품 이름이 한 번만 들어가는지. 카드 화면이 Task 004 스크린샷과 같은지(회귀 없음). 스크린샷 `.playwright-mcp/task-009-desktop.png`
+- [x] 6. 터미널에서 `toSafeUrl` 기대값 확인 (스크래치패드 resolve 훅 사용)
+- [x] 7. `git status`·`git diff --stat`으로 변경 파일 확인, `.env.local` 미수정 확인
 
 ## 완료 기준
 
-- [ ] `npm run lint` 통과
-- [ ] `npm run build` 통과 (`/` `○` Revalidate 5m 유지)
-- [ ] 브라우저 확인: 정상 이미지가 `<img alt="">`, 링크 카드의 접근성 이름에 소품 이름이 1회
-- [ ] 브라우저 확인: 칩 포커스 링 확인 결과 기록 (잘림 여부와 조치)
-- [ ] 터미널 확인: `toSafeUrl` 기대값 일치
-- [ ] 화면 회귀 없음: 카드·칩 모양이 이전과 동일 (칩 간격이 벌어지지 않음)
-- [ ] 변경 파일이 `item-card.tsx`·`notion.ts`(+ 잘렸을 때만 `category-chips.tsx`)뿐이고 `.env.local`은 수정하지 않음
+- [x] `npm run lint` 통과
+- [x] `npm run build` 통과 (`/` `○` Revalidate 5m 유지)
+- [x] 브라우저 확인: 정상 이미지가 `<img alt="">`, 링크 카드의 접근성 이름에 소품 이름이 1회
+- [x] 브라우저 확인: 칩 포커스 링 확인 결과 기록 (잘림 여부와 조치)
+- [x] 터미널 확인: `toSafeUrl` 기대값 일치
+- [x] 화면 회귀 없음: 카드·칩 모양이 이전과 동일 (칩 간격이 벌어지지 않음)
+- [x] 변경 파일이 `item-card.tsx`·`notion.ts`(+ 잘렸을 때만 `category-chips.tsx`)뿐이고 `.env.local`은 수정하지 않음
 
 ## 범위 밖 메모
 
@@ -70,4 +70,15 @@ MVP 전체가 완료되어 배포돼 있다(`https://project-notion-cms.vercel.a
 
 ## 변경 요약
 
-(완료 후 작성: 바뀐 파일, 결정 사항, 남긴 일)
+- (developer, 2026-10-26, 단계 1·2·3·6 + 단계 4의 수정 부분) 고친 파일 3개, 셋 다 한 곳씩:
+  - `src/components/features/wishlist/item-card.tsx` 50행: `alt={item.name}` → `alt=""`. 바로 위에 이유 주석 1줄("소품 이름은 아래 `<p>`가 전달하므로 이미지는 장식으로 둔다 — 링크 이름에 이름이 두 번 들어가지 않게"). 대체 그림(`ImageOff aria-hidden`)·ref 콜백·`<a>`/`<div>` 분기는 변경 없음. 링크 없는 `<div>` 카드도 같은 `<img>`를 쓰므로 함께 `alt=""`가 된다
+  - `src/components/features/wishlist/category-chips.tsx` 28행: 바깥 `div` 클래스 `flex gap-2 overflow-x-auto` → `-mx-1 -my-1 flex gap-2 overflow-x-auto px-1 py-1`. 바로 위에 이유 주석 1줄. 칩 `Button`과 `role`/`aria-label`은 변경 없음
+  - `src/lib/notion.ts` `toSafeUrl`: `startsWith` 두 번 → `const trimmed = value.trim()` 뒤 `/^https?:\/\//i.test(trimmed) ? trimmed : ""`. 함수 위 주석을 현행화(앞뒤 공백 제거, 대소문자 구분 없는 스킴 검사, 대문자 스킴은 그대로 보존). 호출처 `readUrl`은 변경 없음
+- 결정: 단계 4(칩 포커스 링)는 "확인 뒤 필요 시 developer 재호출"이었으나, 명세 2의 **사전 확인(2026-10-25 측정: 칩 줄 높이 28px = 칩 높이, padding 0, `overflow-y: auto`, ring 3px → 위아래·첫 칩 왼쪽 잘림 확인됨)**과 계획 파일 결정 사항 2를 근거로 확인 단계를 생략하고 1·3번과 함께 바로 수정했다. 위아래(`py-1 -my-1`)뿐 아니라 좌우(`px-1 -mx-1`)도 함께 준다(4px > 3px). 음수 여백으로 상쇄해 칩 줄의 바깥 치수와 칩의 겉보기 위치는 그대로다. 단계 4의 체크박스는 수정 후 브라우저 측정이 남아 미체크
+- 바뀐 결정(역사 기록): Task 003 작업 파일의 "alt는 소품 이름" 명세는 고치지 않는다. 이 Task부터 정상 이미지의 `alt`는 `""`(장식)이고 소품 이름은 `<p>`가 전달한다
+- 검증(developer): `npm run lint` 통과(경고 0) · `npm run check-all` 통과(lint + typegen + `tsc --noEmit` 오류 0) · `npm run build` 통과, 라우트 표 `○ /  5m  1y` 유지 · 터미널 `toSafeUrl`(스크래치패드 `ts-resolve-hook.mjs`로 `node --import` 실행, 환경변수 없이): 입력 `[" https://a.com ", "HTTPS://A.com", "http://a.com", "javascript:alert(1)", "a.com", "", null]` → 출력 `["https://a.com","HTTPS://A.com","http://a.com","","","",""]` 기대값 일치 · `git status --short`: `item-card.tsx`·`category-chips.tsx`·`notion.ts` + 이 작업 파일만 수정(계획 파일은 미추적 새 파일), `.env.local` 미수정
+- 남긴 일(메인 대화 몫, 브라우저 확인): 단계 4(Tab으로 칩 포커스 → `:focus-visible` 참, 칩 줄 `paddingTop/Bottom` 4px, 칩 상자가 칩 줄 안쪽으로 위아래·왼쪽 ≥3px, 칩 줄 바깥 높이 28 유지·첫 칩 화면 위치 불변, 스크린샷 `.playwright-mcp/task-009-focus.png`) · 단계 5(정상 이미지 카드 `img.alt === ""`, 링크 `<a>` 접근성 이름에 소품 이름 1회, Task 004 스크린샷과 비교해 회귀 없음, `.playwright-mcp/task-009-desktop.png`) · 단계 7 · 완료 기준의 브라우저 항목 3개와 "변경 파일" 항목 · 상태 `완료` · ROADMAP 갱신(development-planner) · `/ship`
+- 브라우저 확인(2026-10-26, 메인 대화, dev 서버 headless Chrome, Notion 10행 상태): **칩 포커스 링** — Tab으로 "전체" 칩 포커스, `:focus-visible` 참. 칩 줄 padding 4px/4px/4px(위·아래·왼쪽), margin -4px, 칩이 칩 줄 안쪽으로 위 4·아래 4·왼쪽 4px 들어가 3px ring이 잘리지 않음. 부모 기준 칩 위치 top 0·left 0으로 수정 전과 동일(겉보기 변화 없음). 칩 줄 `getBoundingClientRect().height`는 36(28 + 여백 8)이지만 음수 margin으로 레이아웃 차지 높이는 28 그대로. 스크린샷 `.playwright-mcp/task-009-focus.png`
+- **카드 접근성**: 이미지 있는 카드 5장 모두 `img[alt=""]`, 링크 `<a>` 텍스트에 소품 이름 1회(10장 전부). Playwright `getByRole("link", { name: "<이름> <배지>", exact: true })` 1건, 이름이 두 번 들어간 링크 0건. 대체 그림 카드는 변화 없음. 콘솔 오류 0. 스크린샷 `task-009-desktop.png`(회귀 없음)
+- 변경 파일: `item-card.tsx`·`category-chips.tsx`·`notion.ts` 3개 + 문서. `.env.local` 미수정
+- 남긴 일: 없음. Phase 5 완료. 남은 것은 ROADMAP "제외 (MVP 이후)" 항목뿐

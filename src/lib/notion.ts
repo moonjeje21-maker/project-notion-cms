@@ -47,11 +47,12 @@ export async function fetchAllRows(): Promise<PageObjectResponse[]> {
 
 // 카드가 <a href>·<img src>에 그대로 넣어도 안전한 주소만 남긴다
 // Notion의 URL 열은 입력값 형식을 검사하지 않으므로 "javascript:..." 같은 값이 들어올 수 있다
-// http:// 또는 https://로 시작하는 값만 그대로 두고, 그 외(null·빈 값·다른 접두어)는 ""로 바꾼다
+// 앞뒤 공백을 지운 뒤 http:// 또는 https://로 시작하는 값(대소문자 구분 없음)만 남기고, 그 외(null·빈 값·다른 접두어)는 ""로 바꾼다
+// "HTTPS://…"처럼 대문자 스킴은 소문자로 바꾸지 않고 그대로 둔다 (브라우저가 알아서 처리)
 export function toSafeUrl(value: string | null): string {
   if (!value) return ""
-  if (value.startsWith("http://") || value.startsWith("https://")) return value
-  return ""
+  const trimmed = value.trim()
+  return /^https?:\/\//i.test(trimmed) ? trimmed : ""
 }
 
 // 제목(title) 열을 읽는다. 서식 때문에 여러 조각으로 나뉘어 와도 plain_text를 이어 붙인다
