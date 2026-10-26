@@ -11,7 +11,7 @@ import { OTHER_CATEGORY, type Item } from "@/lib/items"
 type NotionEnvName = "NOTION_API_KEY" | "NOTION_DATA_SOURCE_ID"
 
 // Notion 표의 열 이름. 바뀌면 여기만 고친다 (다른 파일에는 열 이름을 적지 않는다)
-const COLUMN = {
+export const COLUMN = {
   name: "이름",
   url: "상품 링크",
   category: "종류",
