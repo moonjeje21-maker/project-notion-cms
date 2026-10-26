@@ -2,7 +2,7 @@
 
 사고 싶은 인테리어 소품을 Notion 표에 "이름 + 상품 링크"만 적으면 웹 한 화면에 카드로 모아 보여 줘서, 흩어진 후보를 한곳에서 훑어보고 구매를 결정할 수 있게 한다.
 
-작성일: 2026-10-10 · 갱신일: 2026-10-26 (Task 009 완료·Phase 5 완료) · 기준 PRD: `docs/prd/prd.md` · 접근법: 구조 우선 (구조 → UI → 데이터)
+작성일: 2026-10-10 · 갱신일: 2026-10-26 (Task 010 완료·Phase 6 완료) · 기준 PRD: `docs/prd/prd.md` · 접근법: 구조 우선 (구조 → UI → 데이터)
 
 ## 📌 가정
 
@@ -15,6 +15,8 @@
 - **빌드 시 Notion 접근**: Task 006부터 `npm run build`가 빌드 중 Notion을 읽어 `/`를 미리 만들므로, `.env.local`과 네트워크가 있어야 build가 통과한다. 환경변수가 없으면 `src/lib/notion.ts`가 한국어 메시지로 바로 오류를 던지게 해 원인을 알 수 있게 한다
 - **Notion 연결 검증 시점**: 가장 불확실한 외부 연동(열 타입·데이터 소스 ID·SDK 5.x 호출 방식)을 화면보다 먼저 확인하기 위해 SDK 설치·환경변수·원시 조회(Task 002)를 Phase 1에 둔다. 화면 Task는 더미 데이터를 그대로 쓰고, 실제 데이터 연결은 Task 006에서 한다
 - **배포 Phase**: PRD 기술 스택에 Vercel이 "다음 단계에 예정"으로 있고 F011이 "배포 전에 Vercel 환경변수를 먼저 등록한다"고 하므로 Phase 4(배포)를 둔다. Vercel 계정·GitHub 연결은 사용자가 Vercel 화면에서 직접 한다
+
+- **Notion 통합 권한**: 2026-10-26 통합의 "콘텐츠 업데이트"를 켰다(같은 값 재저장으로 쓰기 성공 확인). Notion에 쓰는 코드는 사용자가 로컬에서 실행하는 `scripts/fill-images.ts`뿐이고, 사이트(`src/`)는 계속 읽기만 한다. "콘텐츠 삽입"은 끈 채로 둔다
 
 ## 개요
 
@@ -29,7 +31,7 @@
 
 ## 현재 상태
 
-MVP 전체 완료(Task 000~008). 배포 주소는 `https://project-notion-cms.vercel.app`이다. 남은 것은 아래 "제외 (MVP 이후)" 절과 보류 중인 작은 수정 3건이다. Phase 5까지 전부 완료, 남은 것은 '제외 (MVP 이후)' 항목뿐이다.
+MVP 전체 완료(Task 000~008). 배포 주소는 `https://project-notion-cms.vercel.app`이다. Phase 5(Task 009)에 이어 MVP 이후 1차 Phase 6(입력 도우미, Task 010)까지 완료. 다음 할 일은 아래 "제외 (MVP 이후)" 목록에서 골라 정한다.
 
 ### 보류 중인 작은 수정
 
@@ -64,6 +66,8 @@ MVP 전체 완료(Task 000~008). 배포 주소는 `https://project-notion-cms.ve
 - Task 007 산출물: 코드 없음. `README.md` "환경변수" 절의 안내 2문단(build가 Notion을 읽어 `.env.local`·네트워크 필요 / 자동 갱신 확인은 `npm run build && npm run start`)과 확인 방법 — 연결 오류 재현은 `.env.local`을 고치지 않고 명령 앞 환경변수(`NOTION_API_KEY=wrong-key npm run dev -- -p 3001`, `NOTION_DATA_SOURCE_ID= …`)로 임시 서버를 띄워서 하고(이미 설정된 `process.env`를 `.env.local`이 덮지 않음), ISR 확인은 `next start`에서 응답 헤더 `x-nextjs-cache`(`HIT`/`STALE`)로 한다
 - Task 008 산출물: 코드 없음. 배포 주소 `https://project-notion-cms.vercel.app`(`main` 병합 시 자동 재배포), 환경변수는 코드가 아니라 Vercel 설정(Settings → Environment Variables)에 등록, `README.md` "배포" 절에 안내. 확인 방법은 배포 주소 응답 헤더 `x-vercel-cache`(`HIT`/`STALE`)로 ISR을 본다
 - Task 009 산출물: 새 파일 없음, 세 곳 수정 — `item-card.tsx`의 `<img alt="">`(장식 처리, 이름은 `<p>`가 전달) · `category-chips.tsx` 바깥 `div`에 `-mx-1 -my-1 px-1 py-1`(포커스 링 3px 안 잘림, 겉보기 위치 불변) · `notion.ts`의 `toSafeUrl`이 `trim()` + `/^https?:\/\//i`로 대문자 스킴·앞뒤 공백 허용(다른 스킴은 계속 `""`)
+
+- Task 010 재사용(완료): `fetchAllRows()`·`toSafeUrl()`·`requireEnv`(`src/lib/notion.ts`)와 `COLUMN`(Task 010에서 `export` 추가)을 `scripts/fill-images.ts`가 그대로 쓴다
 
 ## 개발 단계
 
@@ -171,6 +175,22 @@ MVP 전체 완료(Task 000~008). 배포 주소는 `https://project-notion-cms.ve
   - ✅ 확인: `npm run lint`·`npm run check-all`·`npm run build` 통과, 터미널 `toSafeUrl` 기대값 일치. headless Chrome에서 칩 inset 4px(포커스 링 안 잘림)·링크 접근성 이름에 소품 이름 1회·콘솔 오류 0·카드·칩 회귀 없음. 스크린샷 `.playwright-mcp/task-009-focus.png`·`task-009-desktop.png`
   - ✅ 계획 파일 `plans/2026-10-26-project-notion-cms-task-009-plan.md`
 
+### Phase 6: 입력 도우미 (MVP 이후 1차) ✅
+
+- **Task 010: 상품 링크로 이미지 URL 채우기 스크립트 만들기** ✅ - 완료
+  - 담당 기능: F020
+  - See: `docs/roadmap/tasks/010-fill-images-script.md`
+  - 계획 파일: `plans/2026-10-26-project-notion-cms-task-010-plan.md`
+  - ✅ 산출물: `scripts/fill-images.ts`, `scripts/register-ts-paths.mjs`(`.ts`를 `module-typescript` 형식으로 알려 줘 Node 경고 0), `src/lib/notion.ts`의 `COLUMN` export, `package.json`의 `fill-images` 스크립트, README "환경변수" 권한 문단 + 새 절 "이미지 채우기", 계획 파일 `plans/2026-10-26-project-notion-cms-task-010-plan.md`
+  - ✅ 확인: `npm run lint` 경고 0, `npm run check-all`·`npm run build` 통과(`/` Revalidate 5m 유지). 터미널 실측(2026-10-26, Notion 10행): 기본 미리보기 `이미 그림 5 · 못 찾음(429) 5`(네이버 5행), `--write`도 쓸 것이 없어 Notion `last_edited_time` 불변, 환경변수 없이 실행하면 한국어 오류 + 종료 코드 1. `--all` 비교는 `일치 1 · 불일치 4 · 못 찾음 5` — 불일치 4건은 추출 실패가 아니라 Notion에 손으로 적힌 썸네일이 사이트의 og:image/Shopify 대표 이미지와 다른 파일이기 때문(my-choice·linenworld Valley·puebco·audocph). audocph는 HTML이 429여도 Shopify 공개 JSON은 200이라 추출됨(실측 전 예상보다 좋음)
+  - 남긴 것: 실제 쓰기 확인(puebco 행 이미지 URL을 비우고 `--write`)은 사용자 선택 사항으로 미실행
+  - 구현 내용(계획 당시 명세): 로컬 1회성 스크립트 `scripts/fill-images.ts` + `npm run fill-images`(`package.json` 한 줄은 메인 대화가 추가). 기본은 미리보기, `--write`를 붙여야 Notion에 쓰고, `--all`은 이미 그림이 있는 행도 다시 추출해 비교만 한다(검증용)
+  - 추출 순서: Shopify 공개 JSON(`/products/<handle>.json`) → `og:image` → `twitter:image`. 우리 봇 User-Agent만 쓰고 브라우저 위장은 하지 않는다
+  - 찾은 주소가 `toSafeUrl`과 HEAD `content-type: image/*` 검증을 통과하면 "이미지 URL" 열 하나만 `pages.update`. 실패(429 등)는 `못 찾음`으로 두고 사람이 Notion에 직접 입력
+  - 2026-10-26 실측(계획 전 curl): 10개 링크 중 4개 추출 성공(my-choice·linenworld ×2·puebco), 실패 6개(네이버 5·audocph 429). 구현 후 스크립트 실측에서는 audocph도 Shopify 공개 JSON으로 성공해 5/10 (아래 ✅ 확인)
+  - `scripts/register-ts-paths.mjs`(`@/` 별칭·확장자 없는 import resolve 훅)와 `src/lib/notion.ts`의 `COLUMN` export, README "이미지 채우기" 절
+  - 완료 기준: lint·check-all·build 통과, 터미널에서 `--all` 미리보기(추출되는 5행 모두 그림 주소 찾음·네이버 5행 못 찾음)·기본 미리보기·`--write`(쓸 것 없음)·환경변수 없을 때 한국어 오류 확인
+
 ## 기능 ↔ Task 대조표
 
 | 기능 ID | 기능명 | Task |
@@ -181,13 +201,17 @@ MVP 전체 완료(Task 000~008). 배포 주소는 `https://project-notion-cms.ve
 | F004 | 빈 상태·대체 이미지 표시 | Task 004, Task 005 |
 | F010 | Notion 자동 갱신 | Task 001, Task 006, Task 007, Task 008 |
 | F011 | Notion 연결 오류 표시 | Task 002, Task 006, Task 007, Task 008 |
+| F020 | 이미지 URL 자동 채우기 (로컬 스크립트) | Task 010 |
 
 기반 Task(기능 ID 없음): Task 000(스타터 정리), Task 001(타입·더미 데이터·부품 자리, F010의 `revalidate` 자리 포함), Task 002(SDK 설치·환경변수·연결 준비, F011의 환경변수 오류 포함), Task 009(기존 기능 F002·F003·F004 다듬기, 새 ID 없음)
 
 ## 제외 (MVP 이후)
 
 - 소품 상세 페이지 (가격·크기가 생기면 그때)
-- 가격·크기 표시와 비교, 상품 링크에서 가격·이미지 자동 수집 (2026-10-25 QA에서 재확인: 서버 fetch로 `og:image` 추출 가능, 네이버는 headless 브라우저를 429로 막음. MVP 제외 유지)
+- 가격·크기 표시와 비교, 상품 링크에서 가격 자동 수집 (이미지 자동 수집은 2026-10-26 Phase 6 Task 010으로 이동했다)
+- 네이버 검색 Open API로 네이버 상품 이미지 채우기 (개발자 키 필요, 2026-10-26 사용자 결정으로 보류)
+- 사이트 런타임(ISR)에서의 자동 수집 (Vercel 데이터센터 IP 차단 위험, 로컬 스크립트가 안정된 뒤 검토)
+- 이미지 채우기 스크립트 다듬기 (2026-10-26 code-reviewer가 남긴 것): 리다이렉트 뒤 내부 주소로 가는 경우 차단(`redirect: "manual"`로 `Location`마다 검사), 기존 "이미지 URL"의 HEAD 확인이 실패(시간 초과 등)한 행은 덮어쓰지 않도록 "그림 아님"과 구분, `--all` 비교 시 주소 정규화
 - 정렬 선택 (최신순 외 가격순 등)
 - 필터 값을 주소에 담아 공유 (주소 쿼리 필터)
 - 공간별(거실·침실 등) 필터, 이름 검색

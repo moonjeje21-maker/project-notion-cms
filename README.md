@@ -49,6 +49,26 @@ NOTION_DATA_SOURCE_ID=  # 소품 표의 데이터 소스 ID
 
 Notion에서 고친 내용은 약 5분 뒤 반영됩니다. 개발 서버(`npm run dev`)에서는 캐시가 돌지 않아 매번 새로 읽으므로, 자동 갱신 확인은 `npm run build && npm run start`로 합니다.
 
+통합의 권한(Capabilities)은 세 가지(콘텐츠 읽기·업데이트·삽입)입니다. 사이트는 **읽기**만 있으면 되고, 아래 "이미지 채우기" 스크립트로 Notion에 쓰려면 **콘텐츠 업데이트**도 켜야 합니다 (안 켜면 쓰기 시 `restricted_resource` 오류). **콘텐츠 삽입**은 새 행을 만들 일이 없으므로 끈 채로 둡니다.
+
+## 이미지 채우기
+
+Notion에 "이름 + 상품 링크"만 적고 "이미지 URL"을 비워 두면, 로컬에서 스크립트를 한 번 돌려 상품 페이지의 대표 이미지 주소를 Notion에 채울 수 있습니다. 사이트 자체는 Notion을 읽기만 하고, Notion에 쓰는 코드는 이 스크립트(`scripts/fill-images.ts`)뿐입니다.
+
+```bash
+npm run fill-images            # 미리보기: 무엇을 채울지 표로만 보여 주고 Notion에는 쓰지 않습니다
+npm run fill-images -- --write # 실제로 "이미지 URL" 열에 씁니다 (다른 열은 건드리지 않습니다)
+npm run fill-images -- --all   # 이미 그림이 있는 행도 다시 추출해 Notion 값과 같은지 비교만 합니다 (쓰지 않음)
+```
+
+이 스크립트는 Node.js 22.18 이상 또는 24가 필요합니다 (`.ts` 직접 실행과 `--env-file-if-exists` 옵션 때문. 사이트 자체는 20.9 이상이면 됩니다). 옵션 두 개를 같이 줄 때는 `--`를 한 번만 씁니다: `npm run fill-images -- --write --all`은 `--all`이 우선해 쓰지 않습니다.
+
+동작 방식: 행마다 "이미지 URL"이 비었거나 그림이 아니면(HTML 페이지 주소 등) 상품 링크를 열어 ① Shopify 가게는 공개 상품 JSON(`/products/<handle>.json`), ② 그 외는 페이지의 `og:image`(없으면 `twitter:image`)에서 주소를 찾고, 실제 `image/*` 응답인지 확인한 뒤 씁니다. 요청은 우리 이름을 밝힌 User-Agent(`LivingWishlistBot/1.0`)로 보내고 브라우저를 흉내 내지 않습니다.
+
+- 되는 사이트: Shopify 가게(puebco.kr, audocph.com 등), `og:image`를 봇에게도 주는 일반 쇼핑몰(my-choice.kr, linenworld.pro 등)
+- 안 되는 사이트: 네이버 스마트스토어·브랜드스토어(봇 요청을 429로 거부), 그 밖에 403·429로 막는 곳 → `못 찾음`으로 남으므로 Notion에 이미지 주소를 직접 적습니다 (상품 페이지에서 이미지를 우클릭 → "이미지 주소 복사")
+- `localhost`·IP 주소·`.local` 같은 내부 주소는 열지 않습니다. 환경변수는 `.env.local`에서 그대로 읽습니다 (Notion 쓰기에는 통합 권한 "콘텐츠 업데이트" 필요)
+
 ## 배포
 
 배포 주소는 `https://project-notion-cms.vercel.app` 입니다 (Vercel 무료 플랜, 프로덕션). `main`에 병합하면 Vercel이 자동으로 다시 배포합니다. 환경변수는 Vercel 프로젝트 설정(Settings → Environment Variables)에 등록되어 있으며 `.env.local`과 같은 이름을 씁니다. 값이 없으면 빌드가 실패합니다.
@@ -118,6 +138,7 @@ src/
 npx shadcn@latest add calendar    # shadcn 컴포넌트 추가 (src/components/ui/ 에 생성)
 npx next upgrade                  # Next.js 최신 버전으로 올리기
 npm outdated                      # 오래된 라이브러리 확인
+npm run fill-images               # Notion의 빈 "이미지 URL"을 상품 링크에서 찾아 채우기 (미리보기, 쓰려면 -- --write)
 ```
 
 아이콘은 [lucide.dev](https://lucide.dev/icons)에서 찾아 `import { 이름 } from "lucide-react"`로 씁니다.
