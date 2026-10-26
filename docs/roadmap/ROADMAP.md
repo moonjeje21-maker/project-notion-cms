@@ -2,7 +2,7 @@
 
 사고 싶은 인테리어 소품을 Notion 표에 "이름 + 상품 링크"만 적으면 웹 한 화면에 카드로 모아 보여 줘서, 흩어진 후보를 한곳에서 훑어보고 구매를 결정할 수 있게 한다.
 
-작성일: 2026-10-10 · 갱신일: 2026-10-25 (Task 009 추가) · 기준 PRD: `docs/prd/prd.md` · 접근법: 구조 우선 (구조 → UI → 데이터)
+작성일: 2026-10-10 · 갱신일: 2026-10-26 (Task 009 완료·Phase 5 완료) · 기준 PRD: `docs/prd/prd.md` · 접근법: 구조 우선 (구조 → UI → 데이터)
 
 ## 📌 가정
 
@@ -29,11 +29,11 @@
 
 ## 현재 상태
 
-MVP 전체 완료(Task 000~008). 배포 주소는 `https://project-notion-cms.vercel.app`이다. 남은 것은 아래 "제외 (MVP 이후)" 절과 보류 중인 작은 수정 3건이다.
+MVP 전체 완료(Task 000~008). 배포 주소는 `https://project-notion-cms.vercel.app`이다. 남은 것은 아래 "제외 (MVP 이후)" 절과 보류 중인 작은 수정 3건이다. Phase 5까지 전부 완료, 남은 것은 '제외 (MVP 이후)' 항목뿐이다.
 
 ### 보류 중인 작은 수정
 
-→ Task 009로 진행(Phase 5)
+→ Task 009에서 처리 완료(2026-10-26)
 
 - 카드 `item-card.tsx`: `<img alt>`와 이름 `<p>`가 중복되어 스크린리더가 이름을 두 번 읽음
 - `category-chips.tsx`: `overflow-x-auto` 때문에 칩 포커스 링이 잘릴 수 있음 (미확인)
@@ -63,6 +63,7 @@ MVP 전체 완료(Task 000~008). 배포 주소는 `https://project-notion-cms.ve
 - Task 006 산출물: `src/lib/notion.ts`의 `getItems(): Promise<Item[]>`(`fetchAllRows()` → `toItem` 매핑, try/catch 없이 오류를 위로) · `toSafeUrl(value: string | null)`(export, `http(s)://`로 시작하지 않는 값 → `""`) · `COLUMN` 상수(Notion 열 이름은 여기만) · 속성 읽기 도우미 `readTitle`·`readUrl`·`readSelect`(열 없음·타입 다름 → `""`, 종류 비면 `OTHER_CATEGORY`). `page.tsx`는 `async` + `await getItems()`. 더미 데이터 `mock-items.ts`는 삭제됨 — 이후 Task는 실제 Notion 데이터로 확인한다
 - Task 007 산출물: 코드 없음. `README.md` "환경변수" 절의 안내 2문단(build가 Notion을 읽어 `.env.local`·네트워크 필요 / 자동 갱신 확인은 `npm run build && npm run start`)과 확인 방법 — 연결 오류 재현은 `.env.local`을 고치지 않고 명령 앞 환경변수(`NOTION_API_KEY=wrong-key npm run dev -- -p 3001`, `NOTION_DATA_SOURCE_ID= …`)로 임시 서버를 띄워서 하고(이미 설정된 `process.env`를 `.env.local`이 덮지 않음), ISR 확인은 `next start`에서 응답 헤더 `x-nextjs-cache`(`HIT`/`STALE`)로 한다
 - Task 008 산출물: 코드 없음. 배포 주소 `https://project-notion-cms.vercel.app`(`main` 병합 시 자동 재배포), 환경변수는 코드가 아니라 Vercel 설정(Settings → Environment Variables)에 등록, `README.md` "배포" 절에 안내. 확인 방법은 배포 주소 응답 헤더 `x-vercel-cache`(`HIT`/`STALE`)로 ISR을 본다
+- Task 009 산출물: 새 파일 없음, 세 곳 수정 — `item-card.tsx`의 `<img alt="">`(장식 처리, 이름은 `<p>`가 전달) · `category-chips.tsx` 바깥 `div`에 `-mx-1 -my-1 px-1 py-1`(포커스 링 3px 안 잘림, 겉보기 위치 불변) · `notion.ts`의 `toSafeUrl`이 `trim()` + `/^https?:\/\//i`로 대문자 스킴·앞뒤 공백 허용(다른 스킴은 계속 `""`)
 
 ## 개발 단계
 
@@ -138,7 +139,7 @@ MVP 전체 완료(Task 000~008). 배포 주소는 `https://project-notion-cms.ve
   - ✅ `src/lib/mock-items.ts` 삭제(`rm`), `grep -rn "mock-items\|mockItems" src/` 0건. `README.md` 3행 "Notion 연동은 아직 없습니다" → "Notion 데이터 소스에서 소품을 읽어 보여 줍니다"(Task 007 몫을 미리 처리), 폴더 그림의 `mock-items.ts` 줄 삭제. 변경 파일은 `notion.ts`(M)·`page.tsx`(M)·`mock-items.ts`(D)·`README.md`(M) 4개뿐 — `src/components/`·`items.ts`·`error.tsx` 변경 없음
   - ✅ 완료 기준 확인: `npm run lint` 통과(경고 0), `npm run build` 통과(빌드 로그 `- Environments: .env.local`, Notion 오류 없음, 라우트 표 `○ /` Revalidate 5m 유지 — `async` 페이지로 바꿔도 ISR 유지), `npm run check-all` 통과. 터미널 `getItems()` → 7행, 첫 항목 5개 필드 모두 `string`, 종류 목록 `소파·소파·라운지체어·그릇·라운지체어·소파·수납`(빈 값 0) · `toSafeUrl` → `["https://a.com","http://a.com","","","",""]` 기대값 일치(환경변수 없이 실행). 브라우저(headless Chrome + playwright-core 스크립트, dev 서버, 2026-10-25): 실제 소품 7장이 Notion 생성 시각 내림차순, 이름·종류 배지 일치, 칩 `전체 · 소파 · 라운지체어 · 그릇 · 수납`(등장 순서, "기타" 없음), "소파" 클릭 → 3장·주소 불변, 7장 모두 `<a target="_blank" rel="noopener noreferrer">`, 첫 카드 클릭 → 새 탭에 상품 주소, 375px 2열·칩 한 줄, React 콘솔 오류 0건. naver 상품 페이지 주소 4건은 `net::ERR_BLOCKED_BY_ORB`로 Task 004 대체 그림이 나옴(데이터 입력 문제, 코드 정상). 스크린샷 `.playwright-mcp/task-006-desktop.png`·`task-006-mobile.png`
   - ✅ 생략·방법 메모: 예외 행(이미지·링크·종류 빈 행) 브라우저 확인은 Notion 7행이 모두 채워져 있고 **사용자 결정(2026-10-25)으로 테스트 행을 추가하지 않아 생략**(`task-006-exceptions.png` 없음, `toSafeUrl` 터미널 확인과 Task 004·005 더미 검증으로 대체). 작업 파일의 `node … import('./src/lib/notion.ts')` 터미널 명령은 Node ESM이 `@/` 별칭도 확장자 없는 상대 경로도 못 풀어 그대로는 실패하므로, 프로젝트 밖 스크래치패드의 `node:module.registerHooks` resolve 훅을 `node --import`로 끼워 수행했고 프로젝트 파일(`tsconfig.json` 포함)은 바꾸지 않음. 앞으로의 끝-대-끝 확인은 브라우저와 `npm run build`로 한다
-  - 미확인 메모(Task 005 리뷰, Task 004 범위 밖): `category-chips.tsx`의 `overflow-x-auto` 때문에 칩의 키보드 포커스 링이 위아래로 잘릴 수 있다는 추정이 아직 확인되지 않았다. 눈에 띄면 별도의 작은 수정(예: 칩 바깥 `div`에 `py-1`)으로 처리한다. 또한 Task 004 리뷰 메모 "링크 안에서 `<img alt>`와 이름 `<p>`가 중복되어 스크린리더가 이름을 두 번 읽음"도 카드 쪽 별도 작은 수정으로 남아 있다
+  - 미확인 메모(Task 005 리뷰, Task 004 범위 밖): `category-chips.tsx`의 `overflow-x-auto` 때문에 칩의 키보드 포커스 링이 위아래로 잘릴 수 있다는 추정이 아직 확인되지 않았다. 눈에 띄면 별도의 작은 수정(예: 칩 바깥 `div`에 `py-1`)으로 처리한다. 또한 Task 004 리뷰 메모 "링크 안에서 `<img alt>`와 이름 `<p>`가 중복되어 스크린리더가 이름을 두 번 읽음"도 카드 쪽 별도 작은 수정으로 남아 있다 (Task 009에서 처리)
 
 - **Task 007: 자동 갱신과 연결 오류 화면 확인하기** ✅ - 완료
   - 담당 기능: F010, F011
@@ -161,15 +162,14 @@ MVP 전체 완료(Task 000~008). 배포 주소는 `https://project-notion-cms.ve
   - ✅ F010 배포본 확인: Notion 수정 직후 요청 `x-vercel-cache: HIT`(age 125, 내용 불변) → 310초 뒤 요청 1 `STALE`(age 310, 이전 페이지) → 요청 2 `HIT`(age 2, 수정 반영)
   - ✅ 코드 변경은 `README.md` "배포" 절뿐. 로컬 `npm run build`·`npm run check-all` 통과. 계획 파일 없음(README만 바뀌고 사용자 단계가 먼저라 plan 모드 생략, 작업 파일이 계획 역할)
 
-### Phase 5: 다듬기
+### Phase 5: 다듬기 ✅
 
-- **Task 009: 보류 중인 작은 수정 3건 처리하기** - 우선순위
+- **Task 009: 보류 중인 작은 수정 3건 처리하기** ✅ - 완료
   - 담당 기능: F002, F004, F003 (기존 기능 다듬기, 새 기능 ID 없음)
   - See: `docs/roadmap/tasks/009-small-fixes.md`
-  - `src/components/features/wishlist/item-card.tsx`: 링크 안에서 `<img alt={item.name}>`과 이름 `<p>`가 겹쳐 스크린리더가 이름을 두 번 읽음 → `alt=""`로 바꿔 이미지를 장식 처리(이름은 `<p>`가 전달)
-  - `src/components/features/wishlist/category-chips.tsx`: `overflow-x-auto` 때문에 칩 포커스 링(3px)이 위아래로 잘릴 수 있음(미확인) → 먼저 Tab 키로 확인하고, 잘리면 바깥 `div`에 `py-1 -my-1`, 안 잘리면 코드 변경 없이 결과만 기록
-  - `src/lib/notion.ts`의 `toSafeUrl`: `HTTPS://`·앞뒤 공백 주소가 `""`가 되어 링크가 조용히 사라짐 → `trim()` 뒤 `/^https?:\/\//i`로 검사
-  - 완료 기준: lint·build 통과(`/` Revalidate 5m 유지), `img alt=""`·링크 접근성 이름에 소품 이름 1회, 포커스 링 확인 결과 기록, `toSafeUrl` 기대값 일치, 카드·칩 화면 회귀 없음
+  - ✅ `item-card.tsx`: `<img alt="">`로 바꿔 링크 접근성 이름에 소품 이름이 1회만 들어감(이름은 `<p>`가 전달). `category-chips.tsx`: 바깥 `div`에 `-mx-1 -my-1 px-1 py-1`을 주어 3px 포커스 링이 잘리지 않음(겉보기 위치 불변). `notion.ts`의 `toSafeUrl`: `trim()` + `/^https?:\/\//i`로 대문자 스킴·앞뒤 공백 허용(다른 스킴은 계속 `""`)
+  - ✅ 확인: `npm run lint`·`npm run check-all`·`npm run build` 통과, 터미널 `toSafeUrl` 기대값 일치. headless Chrome에서 칩 inset 4px(포커스 링 안 잘림)·링크 접근성 이름에 소품 이름 1회·콘솔 오류 0·카드·칩 회귀 없음. 스크린샷 `.playwright-mcp/task-009-focus.png`·`task-009-desktop.png`
+  - ✅ 계획 파일 `plans/2026-10-26-project-notion-cms-task-009-plan.md`
 
 ## 기능 ↔ Task 대조표
 

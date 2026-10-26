@@ -22,10 +22,11 @@ export function CategoryChips({
   onSelect,
 }: CategoryChipsProps) {
   return (
+    // overflow-x-auto는 세로도 잘라내므로 포커스 링(3px)이 들어갈 4px 여백을 주고, 음수 여백으로 겉보기 위치는 그대로 둔다
     <div
       role="group"
       aria-label="종류 필터"
-      className="flex gap-2 overflow-x-auto"
+      className="-mx-1 -my-1 flex gap-2 overflow-x-auto px-1 py-1"
     >
       {[ALL_CATEGORY, ...categories].map((category) => {
         const isSelected = category === selected

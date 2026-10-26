@@ -47,7 +47,8 @@ export function ItemCard({ item }: ItemCardProps) {
           <img
             ref={markIfAlreadyFailed}
             src={item.imageUrl}
-            alt={item.name}
+            // 소품 이름은 아래 <p>가 전달하므로 이미지는 장식으로 둔다 — 링크 이름에 이름이 두 번 들어가지 않게
+            alt=""
             className="size-full object-cover transition group-hover:opacity-90"
             loading="lazy"
             onError={() => setFailed(true)}
